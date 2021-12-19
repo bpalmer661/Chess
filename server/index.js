@@ -1,6 +1,16 @@
-const app = require('express')
-const http = require('http').createServer(app)
-const io = require('socket.io')(http)
+
+var PORT = process.env.PORT || 5000;
+var express = require("express")
+var app = express();
+
+
+
+var http = require('http')
+var server = http.Server(app)
+
+app.use(express.static('client'));
+
+const io = require('socket.io')(server)
 
 io.on('connection', socket => {
     socket.on('message', ({name,message}) =>{
