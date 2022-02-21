@@ -6,29 +6,29 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 
+// import { setDistanceAway } from '../redux/actions/dataActions'
 import { useDispatch } from "react-redux";
 
 
 
 
 
-const options = [
-  3,
-  5,
-  10,
+const tokens = [
+  50,
+  100,
+  200,
+  300,
 ];
 
 
 
-export default function MinuteSelectionMenu() {
+export default function TokenAmountSelectionMenu() {
 
   
-
-
+  // const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(1);
 
-  
   const dispatch = useDispatch();
   
 
@@ -37,15 +37,12 @@ export default function MinuteSelectionMenu() {
   };
 
 useEffect(() => {
-
   
-localStorage.setItem("MinutesPreference",options[selectedIndex])
+  
+
+ localStorage.setItem("TokenAmount",tokens[selectedIndex])
 
 }, [selectedIndex,dispatch])
-
-
-
-
 
 
 
@@ -62,33 +59,26 @@ localStorage.setItem("MinutesPreference",options[selectedIndex])
 
   return (
     <div 
-    
     >
 
   
       <List
-className="button is-primary"
        style={{
-        height: "41px",
-        // width:"40vw",
-        width:"120px",
+        height: "46px",
+        width:"40vw",
         border: "1px solid #dfe1e5",
-        borderRadius: "4px",
+        borderRadius: "0px",
         boxShadow: "rgba(32, 33, 36, 0.28) 0px 1px 6px 0px",
         hoverBackgroundColor: "#eee",
-        //color: "#212121",
-        color: "white",
+        color: "#212121",
         fontSize: "1vw",
         fontFamily: "Arial",
         iconColor: "grey",
         lineColor: "rgb(232, 234, 237)",
         placeholderColor: "grey",
         padding:"0px",
-        marginLeft:"5px",
-        left:"0",
-        textAlign:"center",
-        
-      
+        marginLeft:"1px",
+        left:"0"
 
         
        }}
@@ -101,7 +91,8 @@ className="button is-primary"
           onClick={handleClickListItem}
         >
           <ListItemText 
-          primary={`${options[selectedIndex]} Mins`} 
+          //primary="Show Jobs WithIn" secondary={`${tokens[selectedIndex]} kms`} 
+          primary={` Purchase ${tokens[selectedIndex]} Tokens`} 
           />
         </ListItem>
       </List>
@@ -114,24 +105,21 @@ className="button is-primary"
         style={{
           // backgroundColor: "black",
           marginTop:"99",
-        
         }}
       >
-        {options.map((option, index) => (
+        {tokens.map((token, index) => (
           <MenuItem
-style={{
-          width:"100vw",
-          fontSize:"3vh"
-        }}
-            key={option}
-            // disabled={index === 0}
+
+            key={token}
+            
             selected={index === selectedIndex}
             onClick={(event) => handleMenuItemClick(event, index)}
           >
           
+<br/>
+<br/>
 
-
-             {`${option}`} Minutes
+             {`${token}`}
           
           </MenuItem>
         ))}

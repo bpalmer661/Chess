@@ -6,36 +6,70 @@ import { handleMove } from './Game'
 import { gameSubject } from './Game'
 import Promote from './Promote'
 
-import * as Chess from 'chess.js'
+import { useSelector } from 'react-redux'
 
-const chess = new Chess()
+
+
+
+
+
 
 
 export default function BoardSquare({
   piece,
   black,
   position,
+  
 })
+
+
 
 {
   const [promotion, setPromotion] = useState(null)
+
+var whiteTime = useSelector(state => state.user.whiteTime)
+
+var blackTime = useSelector(state => state.user.blackTime)
+
+
+const timestampForLastmove = useSelector(state => state.user.timestampForLastmove)
+
+var gameStarted = useSelector(state => state.user.status)
+
   
   const [, drop] = useDrop({
+    
+    
     accept: 'piece',
     drop: (item) => {
 
+    
+      if (gameStarted === "waiting"){
+        return
+      }
+
+
       const [fromPosition] = item.id.split('_')
-      handleMove(fromPosition, position)
 
 
-      
 
-      // we are now upto , seeing if we can start the clock from here , we must see if chess.turn() lines up with 
-      // the actuall game , then we need to call start time in count down timer from here 
-      // console.log("this is chess.piece " , chess.turn())
+
+   whiteTime = whiteTime - (Date.now() - timestampForLastmove)
+
+
+   blackTime = blackTime - (Date.now() - timestampForLastmove)
+
+  
+
+      handleMove(fromPosition, position,whiteTime,blackTime,timestampForLastmove)
+
+
 
     },
   })
+
+
+
 
 
   useEffect(() => {
@@ -61,3 +95,5 @@ export default function BoardSquare({
     </div>
   )
 }
+
+

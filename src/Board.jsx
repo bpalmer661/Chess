@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from 'react'
+
+import { useDispatch } from "react-redux";
 import BoardSquare from './BoardSquare'
+import { setPlayersColor } from './redux/actions/userActions'
 export default function Board({ board, position }) {
   const [currBoard, setCurrBoard] = useState([])
 
+
+
+
+
+  const dispatch = useDispatch();
+
+
+
   useEffect(() => {
+    /* eslint-disable */
+    dispatch(setPlayersColor(position));
     setCurrBoard(
-      position === 'w' ? board.flat() : board.flat().reverse()
+ position === 'w' ? board.flat() : board.flat().reverse()
     )
+    
   }, [board, position])
 
   function getXYPosition(i) {

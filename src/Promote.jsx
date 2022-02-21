@@ -2,14 +2,8 @@ import React from 'react'
 import Square from './Square'
 import { move } from './Game'
 
-import * as Chess from 'chess.js'
 
 const promotionPieces = ['r', 'n', 'b', 'q']
-
-
-const chess = new Chess()
-
-
 
 
 
@@ -21,9 +15,6 @@ export default function Promote({
 
 
 
-
-
-
 {
 
   const callMove = (from, to, p) => {
@@ -31,8 +22,6 @@ export default function Promote({
     move(from, to, p)
   }
 
-  const chessREf = chess
-  console.log("test ")
 
   return (
     <div className="board">

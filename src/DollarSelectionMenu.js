@@ -41,6 +41,7 @@ useEffect(() => {
 
 localStorage.setItem("DollarPreference",options[selectedIndex])
 
+
 }, [selectedIndex,dispatch])
 
 

@@ -3,6 +3,7 @@ import { SET_ALL_JOB_POSTS, LOADING_DATA, SET_REPLYS_TO_JOB_POST,
     DELETE_JOB_POST,
      CLEAR_ERRORS, LOADING_UI, SET_JOB_POST,STOP_LOADING_UI, SET_DISTANCE_AWAY, SET_COORDINATES, 
      SET_SEARCH_CATEGORY,GET_REALTIME_USERS, GET_CONVERSATIONS, GET_MESSAGES,SET_ACCOUNTS,SET_USERS_JOB_POSTS,DELETE_CONVERSATION,
+     SET_TRANSACTIONS
 
     } 
       from '../types'
@@ -15,6 +16,17 @@ import axios from 'axios'
 import { 
     db,
 } from "../../firebase";
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -126,73 +138,14 @@ console.log("In dataActions this is jobPostDetails: " + JSON.stringify(jobPostDe
 }
 
 
-//////lesson 36////////
-export const getUserData = (username) => dispatch => {
-
-console.log("getUserData called this is username: " + username)
-
-  dispatch({type: LOADING_DATA});
-    axios.get(`https://australia-southeast1-workservices-e4506.cloudfunctions.net/api/user/${username}`)
-    .then(res => {
-        dispatch({
-            type: SET_USERS_JOB_POSTS,
-            payload: res.data.jobPosts
-        })
-    })
-    .catch(() => {
-        dispatch({
-            type: SET_USERS_JOB_POSTS,
-            payload: null
-        })
-    })
-
-}
-
-
-
-
-export const PersonsOrJobs = (PersonsOrJobs) => (dispatch) => {
-    
-    dispatch({
-        type: SET_DISTANCE_AWAY,
-        payload: PersonsOrJobs
-    })
-}
 
 
 
 
 
-export const setDistanceAway = (distanceAway) => (dispatch) => {
-    
-    dispatch({
-        type: SET_DISTANCE_AWAY,
-        payload: distanceAway
-    })
-}
 
 
 
-
-/////lesson 43////////
-export const setStoreCoordinates = (coordinates) => (dispatch) => {
-    dispatch({
-        type: SET_COORDINATES,
-        payload: coordinates
-    })
-}
-
-
-
-
-
-/////lesson 43////////
-export const setSearchCategory= (category) => (dispatch) => {
-    dispatch({
-        type: SET_SEARCH_CATEGORY,
-        payload: category
-    })
-}
 
 
 
@@ -268,7 +221,7 @@ console.log(" getMessages called in dataActions -this is currentUser:   " + curr
 
 const convoId = `${otherChatUser}${jobId}`
     return async (dispatch) => {
-        const unsubscribe =  db.collection('users').doc(currentUser).collection("conversations").doc(convoId).collection("messages").orderBy('createdAt','asc')
+        const unsubscribe =  db.collection('users').doc(currentUser).collection("conversations").doc(convoId).collection("messages").orderBy('createdAt','desc')
         .onSnapshot((querySnapshot) => {
             const messages = [];
             querySnapshot.forEach(function(doc) {
@@ -307,21 +260,6 @@ export const addImageToJobPost = (formData, state, category, jobId) => (dispatch
 
 
 
-
-
-
-
-export const deleteImageFromJobPost = (url,state,category,jobId,username) => (dispatch) => {
-
-    db.collection("users").doc(username).collection("MyJobPosts").doc(jobId).update({images: firebase.firestore.FieldValue.arrayRemove(url)})
-
-    db.collection("JobPosts").doc(state).collection(category).doc(jobId).update({images: firebase.firestore.FieldValue.arrayRemove(url)})
-              
-    .then(() => {
-      dispatch(getJobPost(state,category,jobId))
-    })
-    .catch(err => console.log(err));
-}
 
 
 

@@ -38,7 +38,7 @@ export class Signup extends Component {
 
 
 
-    
+//bpx we have to check sign up and make sure if gives us errors for no username , no email , passwords do not match etc    
 
     //controlled component using state
     constructor(){
@@ -100,18 +100,21 @@ handleSubmit = (event) => {
     
  const user = {
 email: this.state.email,
-
+inGame: false,
 username:this.state.username,
+rating: 500,
+tokens:0,
 }
+
 
 firebase.auth().createUserWithEmailAndPassword( this.state.email, this.state.password)
   .then(() => {
 
 
-  db.collection("users").doc(this.state.username).set(user)
+  db.collection("users").doc(this.state.email).set(user)
   })
   .then(() =>{
-this.props.getUserDetails(this.state.username)
+this.props.getUserDetails(this.state.email)
 
 
 this.setauthHeader()

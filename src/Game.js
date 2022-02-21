@@ -1,13 +1,10 @@
-
-import { useRef} from 'react'
+//game.js
 import * as Chess from 'chess.js'
-
-import { BehaviorSubject } from 'rxjs'
 import { map } from 'rxjs/operators'
 import { auth, db } from './firebase'
 import { fromDocRef } from 'rxfire/firestore'
-import { CollectionsBookmarkSharp } from '@material-ui/icons'
-import io from 'socket.io-client'
+import firebase from "firebase/app";
+
 let gameRef
 let member
 
@@ -15,71 +12,117 @@ const chess = new Chess()
 
 
 
-
 export let gameSubject
 
 
-export async function initGame(gameRefFb) {
+const updateUserCurrentGameDetails = (gameId) => {
+
+    if(!auth.currentUser){
+      window.location.href = '/';
+    }
+
+db.collection("users").doc(auth.currentUser.email).update({
+    "currentGame": `${gameId}`
+})
+
+
+}
+
+
+
+export async function initGame(gameRefFb,gameId,userRating,username) {
 
     const { currentUser } = auth
 
     if (!currentUser) {
-        console.log("no user sending to login page")
           window.location.href = '/login'
     }
 
-
+//gameRefFb is a database route eg. db.doc(`games/${id}`
     if (gameRefFb) {
         gameRef = gameRefFb
 
-
+       
         const initialGame = await gameRefFb.get().then(doc => doc.data())
 
-        //returns not found when there is no game in the database
+        
+
+
+
         if (!initialGame) {
             return 'notfound'
         }
+       
 
-        // finds the creator uid from the initial game object which is returned from the database
+        var gameStatus;
+
+var currentUsersEmail = currentUser.email
+
+
+
         const creator = initialGame.members.find(m => m.creator === true)
 
-
-        //if the initial game is waiting for a player then person  entering the game (if not having the same uid)  becomes the player , and then database 
-        //is updated with the new member and the status is set to ready.
         if (initialGame.status === 'waiting' && creator.uid !== currentUser.uid) {
+
+            var piece = creator.piece === 'w' ? 'b' : 'w';
+
             const currUser = {
                 uid: currentUser.uid,
                 name: localStorage.getItem('userName'),
-                piece: creator.piece === 'w' ? 'b' : 'w'
+                piece,
+                rating: userRating,
+                email: auth.currentUser.email,
+                username:  username
             }
             const updatedMembers = [...initialGame.members, currUser]
 
-            await gameRefFb.update({ members: updatedMembers, status: 'ready' , startTimer: true})
 
+            await gameRefFb.update({ members: updatedMembers, status: 'ready',timestampForLastmove: Date.now(),
+            "blackPlayer": currentUsersEmail,
+           })
+
+            gameStatus = "ready"
             
-            //here we need to start the timer here.
+updateUserCurrentGameDetails(gameId)
              
-
-            
         } else if (!initialGame.members.map(m => m.uid).includes(currentUser.uid)) {
             return 'intruder'
         }
         chess.reset()
 
         
-
-
-
         gameSubject = fromDocRef(gameRefFb).pipe(
             map(gameDoc => {
                 const game = gameDoc.data()
-                const { pendingPromotion, gameData, ...restOfGame } = game
+
+
+
+
+                if (game === null){
+                    return 
+                }
+
+              
+            
+            const { pendingPromotion , gameData, ...restOfGame } = game
+
+               
+             
+                
                 member = game.members.find(m => m.uid === currentUser.uid)
+
+
                 const oponent = game.members.find(m => m.uid !== currentUser.uid)
+               
                 if (gameData) {
                     chess.load(gameData)
                 }
+
                 const isGameOver = chess.game_over()
+
+                
+
+
                 return {
                     board: chess.board(),
                     pendingPromotion,
@@ -87,22 +130,13 @@ export async function initGame(gameRefFb) {
                     position: member.piece,
                     member,
                     oponent,
+                    status: gameStatus,
                     result: isGameOver ? getGameResult() : null,
                     ...restOfGame
                 }
             })
         )
-
-    } else {
-        gameRef = null
-        gameSubject = new BehaviorSubject()
-        const savedGame = localStorage.getItem('savedGame')
-        if (savedGame) {
-            chess.load(savedGame)
-        }
-        updateGame()
-    }
-
+    } 
 }
 
 
@@ -110,8 +144,11 @@ export async function initGame(gameRefFb) {
 
 export async function resetGame() {
     if (gameRef) {
+        //pendingPromotion, reset
+        
         await updateGame(null, true)
         chess.reset()
+      
     } else {
         chess.reset()
         updateGame()
@@ -119,10 +156,72 @@ export async function resetGame() {
 
 }
 
-export async function abortGame() {
- console.log("abort game caled")
 
+const deleteUsersCurrentGameFieldAndGame = (id) =>{
+    
+        let docRef= db.collection("users").doc(auth.currentUser.email)
+        const currentGame = "currentGame"
+        docRef.update({
+            [currentGame]: firebase.firestore.FieldValue.delete()
+        });
+
+        db.collection("games").doc(id).delete()
 }
+
+
+
+
+
+
+export async function abortGame(id) {
+ 
+var docRef = db.collection("games").doc(id);
+
+docRef.get().then((doc) => {
+    if (doc.exists) {
+
+var CurrentMemberValue 
+
+let memberOneUID = doc.data().members[0].uid
+//if no other players just delete
+if (!doc.data().members[1]){
+docRef.delete()
+deleteUsersCurrentGameFieldAndGame(id)
+window.location.href = '/'
+return
+}
+
+if (auth.currentUser.uid === memberOneUID) {
+    CurrentMemberValue = 0
+} else {
+  CurrentMemberValue = 1
+}
+
+let currentUserColor = doc.data().members[CurrentMemberValue].piece
+
+
+if (currentUserColor === "b") {
+
+db.collection("games").doc(id).update({"winnerByOtherPlayerAborting":"w"})
+} 
+if (currentUserColor === "w") {
+
+    db.collection("games").doc(id).update({"winnerByOtherPlayerAborting":"b"})
+}
+
+
+
+    } 
+}).catch((error) => {
+    console.log("Error getting document:", error);
+});
+   
+ 
+}
+
+
+
+
 
 
 
@@ -131,23 +230,35 @@ export async function offerRematch() {
    
    }
 
+export function handleMove(from, to,whiteTime,blackTime,timestampForLastmove) {
 
+  
 
-export function handleMove(from, to) {
-
-console.log("handle Move called ")
 
     const promotions = chess.moves({ verbose: true }).filter(m => m.promotion)
     console.table(promotions)
     let pendingPromotion
     if (promotions.some(p => `${p.from}:${p.to}` === `${from}:${to}`)) {
         pendingPromotion = { from, to, color: promotions[0].color }
-        updateGame(pendingPromotion)
+updateGame(pendingPromotion,null,whiteTime,blackTime,timestampForLastmove)
+
     }
 
     if (!pendingPromotion) {
-        move(from, to)
+
+
+        move(from, to,null,whiteTime,blackTime,timestampForLastmove)
     }
+}
+
+
+
+
+
+
+export function getTurn() {
+    let turn = chess.turn()
+  return turn
 }
 
 
@@ -157,51 +268,26 @@ console.log("handle Move called ")
 
 
 
-
-
-
-
-
-export function move(from, to, promotion) {
-
+export function move(from, to, promotion,whiteTime,blackTime,timestampForLastmove) {
     
-    gameRef
-    .onSnapshot((doc) => {
-        
-let status = doc.data().status
-
-if (status !== "ready") {
-    console.log("game has not started yet")
-    return
-}  
-
-    });
-
 
 
     let tempMove = { from, to }
-
 
     if (promotion) {
         console.log("promotion was true , this is promotion: " + promotion)
         tempMove.promotion = promotion
     }
 
-    console.log({ tempMove, member }, chess.turn())
+
 
     if (gameRef) {
-    //    console.log("gameRef is: " + gameRef)
-        // console.log("this is member.piece: " + member.piece + " this is chess.turn(): " +  chess.turn() )
+  
         if (member.piece === chess.turn()) {
             const legalMove = chess.move(tempMove)
             if (legalMove) {
-                console.log("legal move made will now call update game")
-
-
-                
-                
-
-                updateGame()
+              
+                updateGame(null, null,whiteTime,blackTime)
             }
         } else {
             console.log("it's not your turn")
@@ -209,82 +295,125 @@ if (status !== "ready") {
 
 
     } else {
-        console.log("else called meaning not gameRef")
+      
         const legalMove = chess.move(tempMove)
         if (legalMove) {
-            console.log("legal move made")
-            updateGame()
-            console.log("legal move made")
+       
+            updateGame(null, null,whiteTime,blackTime)
+            
         }
     }
+
 }
 
-async function updateGame(pendingPromotion, reset) {
+
+
+
+
+
+export async function updateGame(pendingPromotion, reset,whiteTime,blackTime) {
+
+
     const isGameOver = chess.game_over()
 
-    let turn = chess.turn()
-    console.log("this is whos turn it is: " + turn)
 
-
-    var socket;
-
-    socket = io.connect('http://localhost:3001')
-    
-    var data = {
-      x: "x data",
-      y: "y data",
-    }
-    
-    socket.emit('buttonClicked',data)
-    
-      
-    
-    
-   
+//!!!!!! turn will log ("w" for white or "b" for black) , it will straight away log 
+        //the opposite player to who just moved - eg if you just moved
+        //white it will log b
+        let turn = chess.turn()
 
     if (gameRef) {
 
-
-        const updatedData = { gameData: chess.fen(), pendingPromotion: pendingPromotion || null }
-        console.log({ updateGame })
+ var updatedData;
 
 
+ let resultAndWinnerArray = getGameResult();
+
+ const result = resultAndWinnerArray[0]
+ const winner = resultAndWinnerArray[1]
+
+
+///when white makes a move turn = "b" - so be opposite  we log BlackHasMoved when turn === "w"
+if (turn === "w"){
+         updatedData = { gameData: chess.fen(), pendingPromotion: pendingPromotion || null
+            ,turn: turn, blackTime: blackTime ?? 5000, "timestampForLastmove" : Date.now(),
+           BlackHasMoved: true, winner, result
+        }
+    } else {
+         updatedData = { gameData: chess.fen(), pendingPromotion: pendingPromotion || null
+            ,turn: turn, whiteTime: whiteTime ?? 5000, "timestampForLastmove" : Date.now(),
+            WhiteHasMoved: true, winner, result
+        }
+    }
+        
         if (reset) {
             updatedData.status = 'over'
         }
 
+    
 
-        
-        console.log(`this is updatedData ${JSON.stringify(updatedData)}`)
 
         await gameRef.update(updatedData)
     } else {
+
+
+        let resultAndWinnerArray = getGameResult();
+
+        const result = resultAndWinnerArray[0]
+        const winner = resultAndWinnerArray[1]
+             
+        
         const newGame = {
             board: chess.board(),
             pendingPromotion,
             isGameOver,
             position: chess.turn(),
-            result: isGameOver ? getGameResult() : null
+            result: isGameOver ? result : null,
+            winner
+
         }
         localStorage.setItem('savedGame', chess.fen())
         gameSubject.next(newGame)
     }
 }
+
+
+
+
+
 function getGameResult() {
     if (chess.in_checkmate()) {
         const winner = chess.turn() === "w" ? 'BLACK' : 'WHITE'
-        return `CHECKMATE - WINNER - ${winner}`
+        return [`CHECKMATE`, winner]
     } else if (chess.in_draw()) {
-        let reason = '50 - MOVES - RULE'
+        alert("chess in draw")
+        let reason = ['50 - MOVES - RULE',null]
         if (chess.in_stalemate()) {
-            reason = 'STALEMATE'
+            reason = ['STALEMATE', null]
+            alert("stalemate")
         } else if (chess.in_threefold_repetition()) {
-            reason = 'REPETITION'
+            reason = ['REPETITION',null]
+            alert("repetition vever")
         } else if (chess.insufficient_material()) {
             reason = "INSUFFICIENT MATERIAL"
         }
-        return `DRAW - ${reason}`
+        return [`DRAW - ${reason}`,null]
     } else {
-        return 'UNKNOWN REASON'
+        return [null,null]
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

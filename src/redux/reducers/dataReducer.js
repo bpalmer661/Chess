@@ -1,6 +1,6 @@
 
 import { SET_ALL_JOB_POSTS, LOADING_DATA,DELETE_JOB_POST,POST_JOB_POST, SET_JOB_POST,SET_DISTANCE_AWAY,SET_STATE, SET_COORDINATES,
-    SET_SEARCH_CATEGORY,GET_CONVERSATIONS, GET_MESSAGES, SET_ACCOUNTS,SET_USERS_JOB_POSTS,
+    SET_SEARCH_CATEGORY,GET_CONVERSATIONS, GET_MESSAGES, SET_ACCOUNTS,SET_USERS_JOB_POSTS,SET_TRANSACTIONS
 } from '../types'
 
 const initialState= {
@@ -16,6 +16,16 @@ export default function dataReducer(state = initialState, action){
 
 
     switch(action.type){
+
+
+       
+
+        case SET_TRANSACTIONS:
+            return {
+                ...state,
+                transactions: action.payload,
+            };
+            
     
         case LOADING_DATA:
             return {

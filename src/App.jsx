@@ -1,4 +1,7 @@
 
+
+
+
 import React from 'react';
 import './App.css'
 
@@ -18,12 +21,16 @@ import store from './redux/store';
 import { Provider } from "react-redux";
 import Login from './login'
 import  Signup  from './signup';
-
+import DepositFunds from './DepositFunds';
+import WithdrawFunds from './WithdrawFunds';
+import UserPendingWithdrawalsPage from './UsersPendingWithdrawalsPage';
+import AdminPayPendingWithdrawalsPage from "./AdminPayPendingWithdrawalsPage"
 
 
 //we don't put brackets on navbar like {navbar } because it doesn't connect it to the right component/ if we put { navbar } the navbar component is not connected to
 //the redux store, so it does not have access to redux store data.
 import  Navbar from './Navbar';
+import Transactions from './Transactions';
 
 
 const theme = createTheme(themeFile);
@@ -31,7 +38,9 @@ const theme = createTheme(themeFile);
 
 export default function App() {
 
-//   
+
+
+
 
 
     const [user, loading, error] = useAuthState(auth)
@@ -41,35 +50,39 @@ export default function App() {
         return 'loading ...'
         
     }
-    // if (error) {
-    //     return 'There was an error'
-    // }
-
-
-    // if (!user) {
-    //     // return <UserForm />
-    //     console.log("no user going to login page")
-    //     return <Login />
-    // }
+  
 
     return (
 
 <MuiThemeProvider theme={theme}>
-
-
-
 
 <Provider store={store}>
         <Router>
 
 
         <Navbar/>
-         
         <Switch>
                
        <Route exact path="/" component={Home}/>
 
-                
+       <Route exact path="/deposit" component={DepositFunds}/>
+    
+       <Route exact path="/withdraw" component={WithdrawFunds}/>
+    
+       <Route exact path="/userPendingWithdrawalsPage" component={UserPendingWithdrawalsPage}/>
+    
+       <Route exact path="/adminPayPendingWithdrawalsPage" component={AdminPayPendingWithdrawalsPage}/>
+    
+
+
+
+       
+       
+
+       <Route exact path="/transactions" component={Transactions}/>
+    
+
+       
     
                 <AuthRoute exact path="/login"  >
          <Login />

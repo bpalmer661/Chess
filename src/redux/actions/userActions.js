@@ -1,3 +1,6 @@
+//userActions.js
+
+
 
 import { 
     SET_ERRORS, 
@@ -7,21 +10,87 @@ import {
      STOP_LOADING_UI,
      DEACTIVATE_ACCOUNT,
      ACTIVATE_ACCOUNT,
+     SET_WHITE_CLOCK_TIME,
+     SET_BLACK_CLOCK_TIME,
+     SET_CLOCK_VALUES_AND_TIMESTAMP,
+     SET_PLAYERS_COLORS,
+     SET_PLAYERS_RATING,
+     SET_PLAYERS_TOKENS,
+     SET_PLAYERS_USERNAME,
+     SET_PENDING_WITHDRAWAL,
     } from '../types'
 
-    import firebase from 'firebase/app'
 
 
 import axios from 'axios'
 import 'firebase/firestore';
-import { 
-    db,
-    //auth 
-} from "../../firebase";
 
 
 
+export const setPlayerRating = (rating) => (dispatch) => {
 
+    console.log("setPlayerRating called this is rating: " + rating)
+    dispatch({
+        type: SET_PLAYERS_RATING,
+        payload: rating
+    })
+    }
+
+
+    
+
+    export const setPendingWithdrawal = (pendingWithdrawal) => (dispatch) => {
+
+        console.log("setPendingWithdrawal called this is setPendingWithdrawal: " + setPendingWithdrawal)
+        dispatch({
+            type: SET_PENDING_WITHDRAWAL,
+            payload: setPendingWithdrawal
+        })
+        }
+    
+
+
+
+    export const setPlayersUsername = (username) => (dispatch) => {
+
+        console.log("setPlayersUsername called this is username: " + username)
+        dispatch({
+            type: SET_PLAYERS_USERNAME,
+            payload: username
+        })
+        }
+    
+
+
+export const setPlayersTokens = (tokens) => (dispatch) => {
+
+    console.log("setPlayersTokens called this is tokens: " + tokens)
+    dispatch({
+        type: SET_PLAYERS_TOKENS,
+        payload: tokens
+    })
+    }
+
+
+export const setClockValuesAndTimeStamp = (game) => (dispatch) => {
+
+
+    dispatch({
+        type: SET_CLOCK_VALUES_AND_TIMESTAMP,
+        payload: game
+    })
+    }
+
+
+    export const setPlayersColor = (color) => (dispatch) => {
+        dispatch({type: SET_PLAYERS_COLORS,
+            payload: color 
+        })
+       
+        }
+
+
+    
 
 export const setLoadingFalse = () => (dispatch) => {
     dispatch({type: STOP_LOADING_UI})
@@ -119,19 +188,6 @@ dispatch(getAuthenticatedUsersDetails());
 
 
 
-    // export const logoutUser = (dispatch) => {
-
-    //     console.log("logoutUser Called inside  userActions")
-    //     localStorage.removeItem('FBToken')
-    //     delete axios.defaults.headers.common["Authorization"];
-    //     dispatch({type: SET_UNAUTHENTICATED })
-    //     dispatch({type: SET_LOADING_FALSE })
-    //     dispatch({type:  STOP_LOADING_UI})
-        
-    // }
-
-
-
 
 
     export const setAuthorizationHeader = (token,dispatch) => {
@@ -154,6 +210,27 @@ dispatch(getAuthenticatedUsersDetails());
           
     }
     
+
+    export const setWhiteClockTime = (time) => (dispatch) => {
+    
+        // console.log("setWhiteClockTime called time is : " + time)
+              
+                 dispatch({
+                    type:SET_WHITE_CLOCK_TIME,
+                    payload: time,
+                })
+         }
+
+         
+         export const setblackClockTime = (time) => (dispatch) => {
+    
+            // console.log("setblackClockTime called time is : " + time)
+                  
+                     dispatch({
+                        type:SET_BLACK_CLOCK_TIME,
+                        payload: time,
+                    })
+             }
 
 
 
@@ -199,18 +276,6 @@ export const addImageToProfile = (formData) => (dispatch) => {
           dispatch({ type: STOP_LOADING_UI})
         })
         
-        .catch(err => console.log(err));
-    }
-    
-    
-    
-    export const deleteImageFromProfile = (url, username) => (dispatch) => {
-        dispatch({ type: LOADING_UI});
-        db.collection("users").doc(username).update({images: firebase.firestore.FieldValue.arrayRemove(url)})
-        .then(() => {
-            dispatch(getAuthenticatedUsersDetails())
-            dispatch({ type: STOP_LOADING_UI})
-        })
         .catch(err => console.log(err));
     }
     

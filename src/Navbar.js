@@ -3,17 +3,16 @@
 
 
 //navbar.js
-import React, { Fragment } from 'react'
+import React, { Fragment,useState,useEffect } from 'react'
 
 
 import { Link } from 'react-router-dom';
 import MyButton from './util/MyButton'
 
+import { auth,db } from './firebase'
+import { setUnAutheticated,setPlayerRating,setPlayersTokens,setPlayersUsername,setPendingWithdrawal } from './redux/actions/userActions';
 
-import { setUnAutheticated } from './redux/actions/userActions';
-
-
-
+import { useHistory } from 'react-router-dom'
 
 
 ///npm install @material-ui/core
@@ -30,13 +29,12 @@ import firebase from 'firebase'
 
 
 
-
-
-
 export default function Navbar() {
 
 
-    const dispatch = useDispatch();
+const dispatch = useDispatch();
+
+const history = useHistory()
 
     const signout = () => {
         firebase.auth().signOut().then(() => {
@@ -47,20 +45,121 @@ dispatch(setUnAutheticated())
           });
     }
 
+    const goToAdminPayPendingWithdrawalsPage = () => {
+        history.push('/adminPayPendingWithdrawalsPage')
+        
+    }
+
 
 
     const goToHomePage = () => {
-        console.log("go to home page called")
         window.location.href = '/'
     }
 
+
+
+const [rating, setRating] = useState()
+const [tokens, setTokens] = useState()
+
+
+const adminMakePaymentMarkup = auth.currentUser && auth.currentUser.email === "benpalmer661@icloud.com" ? (
     
-      
+<MyButton
+tip="Logout"
+onClick={goToAdminPayPendingWithdrawalsPage}
+>
+ <p
+ style={{color:"white"}}
+ >Admin Make Payments</p>
+</MyButton>
+) : (
+   
+   null
+)
+
+useEffect(() => {
+
+
+    const { currentUser } = auth
+
+    if (currentUser) {
+
+
+    db.collection("users").doc(auth.currentUser.email).get().then((doc) => {
+
+
+        if (doc.exists) {
+
+
+            const rating = doc.data().rating
+
+            const tokens = doc.data().tokens
+            const username = doc.data().username
+            const pendingWithdrawal = doc.data().pendingWithdrawal
+
+
+           if (username) {
+               dispatch(setPlayersUsername(username))
+           }
+if(pendingWithdrawal) {
+    dispatch(setPendingWithdrawal(pendingWithdrawal));
+}
+
+
+            if (tokens) {
+    dispatch(setPlayersTokens(tokens));
+    setTokens(tokens)
+            }
+ 
+           if (rating) {
+    dispatch(setPlayerRating(rating));
+    
+
+    setRating(rating)
+           }
+        } 
+    })
+    }
+ // eslint-disable-next-line
+}, [])
+
+
+
+
+
+const depositFunds = () => {
+    console.log("deposit funds pressed")
+    history.push('/deposit')
+
+}
+
+
+const withdrawFunds = () => {
+    console.log("withdrawFunds pressed")
+    history.push('/withdraw')
+
+}
+
+
+
+
+
+const goToTransactionsPage = () => {
+    console.log("goToTransactionsPage pressed")
+    history.push('/transactions')
+
+    // window.location.href = '/deposit';
+}
+    
 
 const authenticated = useSelector(state => state.user.authenticated)
-    
-console.log("this is authenticated: " + authenticated)
-        
+
+
+
+
+
+
+
     
         return (
             <AppBar>
@@ -72,10 +171,19 @@ console.log("this is authenticated: " + authenticated)
 <Fragment>
 
 
+<p
+ style={{color:"white", left:100}}
+ >  {`${auth.currentUser.email} - Rating ${rating} - Tokens ${tokens} `}  </p>
 
+<br/>
+ <br/>
+
+ <br/>
+ <br/>
+ <br/>
 
 <MyButton
-tip="Logout"
+tip="home"
 onClick={goToHomePage}
 >
  <p
@@ -83,24 +191,21 @@ onClick={goToHomePage}
  >Home</p>
 </MyButton>
 
+{adminMakePaymentMarkup}
 
 <MyButton
-tip="Logout"
+tip="Transactions Page"
+onClick={goToTransactionsPage}
 >
  <p
  style={{color:"white"}}
- >Account</p>
+ >Transactions</p>
 </MyButton>
 
-<br/>
-
-
-
-<br/>
 
 <MyButton
 tip="Deposit Funds"
-onClick={signout}
+onClick={depositFunds}
 >
  <p
  style={{color:"white"}}
@@ -109,17 +214,22 @@ onClick={signout}
 </MyButton>
 
 
-<br/>
-
 <MyButton
-tip="Balance"
-// onClick={signout}
+tip="Deposit Funds"
+onClick={withdrawFunds}
 >
  <p
  style={{color:"white"}}
- > Balance $11344.00</p>
-  
+ > Withdraw Funds</p>
+ 
 </MyButton>
+
+
+
+
+
+<br/>
+
 
 
 <MyButton
