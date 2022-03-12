@@ -5,8 +5,7 @@
 import {  SET_AUTHENTICATED,SET_UNAUTHENTICATED,SET_ALL_JOB_POSTS, LOADING_USER,SET_USER,GET_REALTIME_MESSAGES,
      MARK_NOTIFICATIONS_READ, GET_REALTIME_CONVERSATIONS, UPDATE_USER, UPDATE_USER_INFO, SET_LOADING_FALSE ,DEACTIVATE_ACCOUNT,ACTIVATE_ACCOUNT,
      SET_WHITE_CLOCK_TIME ,SET_BLACK_CLOCK_TIME, SET_CLOCK_VALUES_AND_TIMESTAMP,SET_PLAYERS_COLORS, SET_PLAYERS_RATING,SET_PLAYERS_TOKENS, SET_PLAYERS_USERNAME,
-     SET_PENDING_WITHDRAWAL
-    } from '../types'
+     SET_PENDING_WITHDRAWAL, SET_KNOWN_WALLET_ADDRESS, SET_HAS_DEPOSITED} from "../types"
 
 
 
@@ -32,16 +31,26 @@ export default function userReducer(state = initialState,action) {
     switch(action.type){
 
 
+       
+        
+        case SET_HAS_DEPOSITED:
+            return{
+                ...state,
+                hasDeposited: action.payload
+            }
+        
+    
+        
+        case SET_KNOWN_WALLET_ADDRESS:
+    return{
+        ...state,
+        knownWalletAddress: action.payload
+    }
 
-    // export const setPendingWithdrawalAmount = (pendingWithdrawalAmount) => (dispatch) => {
 
-    //     console.log("setPendingWithdrawalAmount called this is PendingWithdrawalAmount: " + pendingWithdrawalAmount)
-    //     dispatch({
-    //         type: SET_PENDING_WITHDRAWAL_AMOUNT,
-    //         payload: pendingWithdrawalAmount
-    //     })
-    //     }
 
+
+    
     case SET_PENDING_WITHDRAWAL:
     return{
         ...state,

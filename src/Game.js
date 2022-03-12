@@ -12,6 +12,10 @@ const chess = new Chess()
 
 
 
+
+
+
+
 export let gameSubject
 
 
@@ -42,23 +46,12 @@ export async function initGame(gameRefFb,gameId,userRating,username) {
     if (gameRefFb) {
         gameRef = gameRefFb
 
-       
         const initialGame = await gameRefFb.get().then(doc => doc.data())
-
-        
-
-
 
         if (!initialGame) {
             return 'notfound'
         }
        
-
-        var gameStatus;
-
-var currentUsersEmail = currentUser.email
-
-
 
         const creator = initialGame.members.find(m => m.creator === true)
 
@@ -68,7 +61,6 @@ var currentUsersEmail = currentUser.email
 
             const currUser = {
                 uid: currentUser.uid,
-                name: localStorage.getItem('userName'),
                 piece,
                 rating: userRating,
                 email: auth.currentUser.email,
@@ -78,11 +70,15 @@ var currentUsersEmail = currentUser.email
 
 
             await gameRefFb.update({ members: updatedMembers, status: 'ready',timestampForLastmove: Date.now(),
-            "blackPlayer": currentUsersEmail,
+            "blackPlayer": auth.currentUser.email,
            })
 
-            gameStatus = "ready"
-            
+           var gameStatus = "ready"
+
+
+     new Audio("/gameStart.mov").play()
+
+  
 updateUserCurrentGameDetails(gameId)
              
         } else if (!initialGame.members.map(m => m.uid).includes(currentUser.uid)) {
@@ -95,22 +91,11 @@ updateUserCurrentGameDetails(gameId)
             map(gameDoc => {
                 const game = gameDoc.data()
 
-
-
-
-                if (game === null){
-                    return 
-                }
-
-              
             
             const { pendingPromotion , gameData, ...restOfGame } = game
 
                
-             
-                
                 member = game.members.find(m => m.uid === currentUser.uid)
-
 
                 const oponent = game.members.find(m => m.uid !== currentUser.uid)
                
@@ -121,8 +106,6 @@ updateUserCurrentGameDetails(gameId)
                 const isGameOver = chess.game_over()
 
                 
-
-
                 return {
                     board: chess.board(),
                     pendingPromotion,
@@ -209,8 +192,6 @@ if (currentUserColor === "w") {
     db.collection("games").doc(id).update({"winnerByOtherPlayerAborting":"b"})
 }
 
-
-
     } 
 }).catch((error) => {
     console.log("Error getting document:", error);
@@ -268,6 +249,7 @@ export function getTurn() {
 
 
 
+
 export function move(from, to, promotion,whiteTime,blackTime,timestampForLastmove) {
     
 
@@ -287,7 +269,11 @@ export function move(from, to, promotion,whiteTime,blackTime,timestampForLastmov
             const legalMove = chess.move(tempMove)
             if (legalMove) {
               
+   
+    
                 updateGame(null, null,whiteTime,blackTime)
+
+        new Audio("/move.mov").play()
             }
         } else {
             console.log("it's not your turn")
@@ -298,8 +284,10 @@ export function move(from, to, promotion,whiteTime,blackTime,timestampForLastmov
       
         const legalMove = chess.move(tempMove)
         if (legalMove) {
-       
+          
             updateGame(null, null,whiteTime,blackTime)
+
+        new Audio("/move.mov").play()
             
         }
     }
@@ -313,7 +301,7 @@ export function move(from, to, promotion,whiteTime,blackTime,timestampForLastmov
 
 export async function updateGame(pendingPromotion, reset,whiteTime,blackTime) {
 
-
+  
     const isGameOver = chess.game_over()
 
 
@@ -332,16 +320,18 @@ export async function updateGame(pendingPromotion, reset,whiteTime,blackTime) {
  const result = resultAndWinnerArray[0]
  const winner = resultAndWinnerArray[1]
 
+ let gameLength = localStorage.getItem("gameLength") ?? 180000
+
 
 ///when white makes a move turn = "b" - so be opposite  we log BlackHasMoved when turn === "w"
 if (turn === "w"){
          updatedData = { gameData: chess.fen(), pendingPromotion: pendingPromotion || null
-            ,turn: turn, blackTime: blackTime ?? 5000, "timestampForLastmove" : Date.now(),
+            ,turn: turn, blackTime: blackTime ?? gameLength, "timestampForLastmove" : Date.now(),
            BlackHasMoved: true, winner, result
         }
     } else {
          updatedData = { gameData: chess.fen(), pendingPromotion: pendingPromotion || null
-            ,turn: turn, whiteTime: whiteTime ?? 5000, "timestampForLastmove" : Date.now(),
+            ,turn: turn, whiteTime: whiteTime ?? gameLength, "timestampForLastmove" : Date.now(),
             WhiteHasMoved: true, winner, result
         }
     }
@@ -380,20 +370,40 @@ if (turn === "w"){
 
 
 
-
 function getGameResult() {
+
+    // //stalemate
+    // do code to handle a stalemate  , line below puts game in a stalemate , 
+    // chess.load('4k3/4P3/4K3/8/8/8/8/8 b - - 0 78')
+
+    //insufficient
+    // chess.load('k7/8/n7/8/8/8/8/7K b - - 0 1')
+    
+ 
+    if(chess.in_threefold_repetition()){
+alert("get game result called - this is chess.in_threefold_repetition() " + chess.in_threefold_repetition())
+    } 
+
     if (chess.in_checkmate()) {
+
+       
+
+    new Audio("/elephantSoundEffect.mp3").play()
+        
         const winner = chess.turn() === "w" ? 'BLACK' : 'WHITE'
         return [`CHECKMATE`, winner]
     } else if (chess.in_draw()) {
-        alert("chess in draw")
+    
         let reason = ['50 - MOVES - RULE',null]
         if (chess.in_stalemate()) {
             reason = ['STALEMATE', null]
-            alert("stalemate")
+           
+        new Audio("/gameOverStalemate.mov").play()
         } else if (chess.in_threefold_repetition()) {
+            alert("repetition acheived")
             reason = ['REPETITION',null]
-            alert("repetition vever")
+            // return [`REPETITION`, null]
+            
         } else if (chess.insufficient_material()) {
             reason = "INSUFFICIENT MATERIAL"
         }

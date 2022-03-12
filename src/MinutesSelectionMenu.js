@@ -6,8 +6,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 
-import { useDispatch } from "react-redux";
-
 
 
 
@@ -15,12 +13,11 @@ import { useDispatch } from "react-redux";
 const options = [
   3,
   5,
-  10,
 ];
 
 
 
-export default function MinuteSelectionMenu() {
+export default function MinuteSelectionMenu(props) {
 
   
 
@@ -28,20 +25,27 @@ export default function MinuteSelectionMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(1);
 
-  
-  const dispatch = useDispatch();
-  
 
   const handleClickListItem = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
 useEffect(() => {
+ 
 
-  
-localStorage.setItem("MinutesPreference",options[selectedIndex])
 
-}, [selectedIndex,dispatch])
+ localStorage.setItem("gameLength",options[selectedIndex])
+ 
+ props.onSelectMinutesAmount(options[selectedIndex])
+}, [selectedIndex])
+
+
+
+
+useEffect(() => {
+  setSelectedIndex([0]);
+
+}, [])
 
 
 
@@ -70,24 +74,23 @@ localStorage.setItem("MinutesPreference",options[selectedIndex])
 className="button is-primary"
        style={{
         height: "41px",
-        // width:"40vw",
         width:"120px",
         border: "1px solid #dfe1e5",
         borderRadius: "4px",
         boxShadow: "rgba(32, 33, 36, 0.28) 0px 1px 6px 0px",
         hoverBackgroundColor: "#eee",
-        //color: "#212121",
-        color: "white",
         fontSize: "1vw",
         fontFamily: "Arial",
         iconColor: "grey",
         lineColor: "rgb(232, 234, 237)",
         placeholderColor: "grey",
         padding:"0px",
-        marginLeft:"5px",
+       
         left:"0",
         textAlign:"center",
-        
+        color:"black",
+         marginLeft: "5px",
+backgroundColor:"lightBlue",
       
 
         

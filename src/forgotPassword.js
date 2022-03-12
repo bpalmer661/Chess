@@ -6,6 +6,9 @@
 
 
 
+
+
+
 // import { auth, db } from './firebase'
 
 
@@ -13,7 +16,6 @@
 import React, { useState } from "react";
 import { Link } from 'react-router-dom';
 
-import { useDispatch } from "react-redux";
 
 //MUI 
 import { Typography } from '@material-ui/core';
@@ -22,27 +24,31 @@ import Button from '@material-ui/core/Button';
 // npm
 
 import firebase from 'firebase';
-import { setAutheticated } from './redux/actions/userActions';
-
 
       
 import elephant from './Images/elephantChess.png'
 
 
 
+export default function ForgotPassword() {
 
-export default function Login() {
 
 
-  const [password, setPassword] = useState("");
 
   const [email, setEmail] = useState("");
 
 
+  const [Error, setError] = useState("");
+
           
-    const dispatch = useDispatch();
      
               
+
+
+
+
+
+
 
 const handleSubmit = (event) => {
     event.preventDefault();
@@ -50,57 +56,40 @@ const handleSubmit = (event) => {
     
 
 
-firebase.auth().signInWithEmailAndPassword( email, password)
-  .then((userCredential) => {
-    // Signed in
-    var user = userCredential.user;
-  
-console.log("this is userCredentials: " + JSON.stringify(user))
 
-
-  })
+    firebase.auth().sendPasswordResetEmail(email)
   .then(() => {
-   
+    alert("Reset Password Email Sent To " +  email + " Please Check Junk Mail Also llllll")
 
-    dispatch(setAutheticated());
 
-    
-      window.location.href = '/';
-   
+
   })
   .catch((error) => {
-  
-    alert("this is error" + error.code)
-
+      alert("error " + error)
+    var errorCode = error.code;
+    var errorMessage = error.message;
+    setError(error.message)
+    console.log(Error,errorCode,errorMessage)
   });
 
-}  
+}
+
 
     return (
             
                     <div>
-        
-        
-        
                         <div >
-
-
                             <div  style={{  margin:"0 auto", width:"200px",justifyContent: "center"}}>
 
                             <center>
-
 <img 
 style={{width:"150px", 
 padding:"20px",
 marginTop:"100px",
-
 }}
 src={elephant} alt="elephant" 
 />
-
  </center>              
-                  
-
 </div>
         
                             <Typography 
@@ -108,17 +97,15 @@ src={elephant} alt="elephant"
                             variant="h3" 
                             //className={classes.pageTitle}
                             > 
-                          Login
+                          Reset Password
                             </Typography>
         
                           
         
                             <form 
-                            style={{ margin:"0 auto", width:"500px"}}
+                            style={{ margin:"0 auto", width:"500px",marginTop:"30px"}}
                             noValidate onSubmit={handleSubmit}>
-                    
                              <TextField 
-                             
                              id='email' 
                              name="email" 
                              type="email" 
@@ -132,54 +119,23 @@ src={elephant} alt="elephant"
                            
                                                   />
         
-                             <TextField
-                      
-                             id='password' 
-                             name="password" 
-                             type="password" 
-                             label="Password" 
-                            //  className={classes.textField}
-                            //  helperText={errors.password}
-                             //error seet field to be red
-                            //  error={errors.password ? true : false }
-                             value={password}
-                             onChange={e => setPassword(e.target.value)}
-                             fullWidth
-                             style={{marginBottom: "50px"}}
-                             />     
+                             
 
-                              <br></br>  
-{/*                                 
-                                {errors.general && (
-                                <Typography variant="body2" 
-                                className={classes.customError}
-                                >
-                            {errors.general}
-                                </Typography>
-                            )}
-         */}
-        
-                            {/* {errors.error && (
-                                <Typography variant="body2" 
-                                className={classes.customError}
-                                >
-                            {errors.error}
-                                </Typography>
-                            )} */}
-        
+                            
+
         
         
                              <Button type="submit" 
                              variant="contained"  
-                            //  color="primary"  
-                             style={{ width: "100px",
+                             style={{ 
   margin: "0 auto",
   display: "block",
   backgroundColor: "lightblue",
+  padding: "10px",
+  marginTop:"30px",
   }}
-                            //  className={classes.button}
-                            //  disabled={loading}
-                               >Login</Button>
+                            
+                               >Reset Password</Button>
         
         
         
@@ -191,13 +147,13 @@ src={elephant} alt="elephant"
                            
          <br></br>
          <br></br>    
+        <small>  <Link to="/login"
+         style={{display: "flex",justifyContent: "center", color:"black"}}
+        >Go To Login Page</Link>  </small>
+        <br/>
         <small>  <Link to="/signup"
          style={{display: "flex",justifyContent: "center", color:"black"}}
-        >Don't have an account? Sign Up</Link>  </small>
-        <br/>
-        <small>  <Link to="/forgotPassword"
-         style={{display: "flex",justifyContent: "center", color:"black"}}
-        >Forgot Password?</Link>  </small>
+        >Go To Sign Up Page</Link>  </small>
         <br></br>
          <br></br>
         

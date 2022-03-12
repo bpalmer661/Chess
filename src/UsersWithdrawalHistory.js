@@ -5,11 +5,11 @@ import React, { useEffect, useState } from 'react'
 
 import {db, auth } from './firebase'
 import UsersPendingWithdrawalsCard from './UsersPendingWithdrawalsCard';
+
 import { useHistory } from 'react-router-dom'
 
 
-
-export default function UsersPendingWithdrawalsPage() {
+export default function UsersWithdrawalHistory() {
 
 
 
@@ -19,14 +19,31 @@ const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
 
 
 
+
+
+const history = useHistory()
+
+
+
+
+const goToTransactionHistory = () => {
+    history.push('/transactions')
+    }
+    
+    
+    
+    
+
+
 useEffect(() => {
 
-//in database and when wrting change pendingWithdrawals to pendingWithdrawalsAndAllWithdrawalHistory
+
+
 
     const fetchTransactions = async () => {
       try {
       
-        const ref = db.collection("users").doc(auth.currentUser.email).collection("pendingWithdrawalsAndAllWithdrawalHistory").where("status", "==", "pending")
+        const ref = db.collection("users").doc(auth.currentUser.email).collection("pendingWithdrawalsAndAllWithdrawalHistory").orderBy("timestamp", 'desc');
 
 
         const docs = await ref.get();
@@ -46,13 +63,8 @@ useEffect(() => {
 
 
 
-const history = useHistory()
 
 
-
-const goToUsersWithdrawalHistory = () => {
-  history.push('/usersWithdrawalHistory')
-}
 
 
 
@@ -89,20 +101,41 @@ timeProcessedTimeStamp={withdrawals.timeProcessedTimeStamp ?? "Pending"}
 
   return (
   <div
-  style={{padding:"30px",marginTop:"200px", backgroundColor:"purple"}}
+  style={{padding:"30px",marginTop:"150px", 
+  // backgroundColor:"purple"
+  }}
   >
 
 <center>
 <h1
-style={{fontSize: "20px",color:"black"}}
+style={{fontSize: "50px",color:"black"}}
 > 
-Pending Withdrawals
+ Withdrawal History
 </h1>
 
 <br/>
 
-<button onClick={goToUsersWithdrawalHistory}> View Withdrawal History</button>
+<button 
+style={{
+// backgroundColor:"#008CBA",
+backgroundColor:"lightBlue",
+margin: "auto",
+fontSize: "20px",
+borderRadius: "5px",
+padding:"10px",
+color:"black",
+marginBottom:"10px",
+}}
+onClick={goToTransactionHistory}>
+ View Transaction History </button>
 </center>
+
+
+
+
+
+
+
 
 
 <br/>
@@ -112,12 +145,16 @@ Pending Withdrawals
 
 
 <div
-style={{backgroundColor:"yellow", margin:"auto 0"}}
+style={{
+  // backgroundColor:"yellow",
+ margin:"auto 0"}}
 >  
 
 
 <div
-style={{backgroundColor:"blue",margin: "auto",
+style={{
+  // backgroundColor:"blue",
+margin: "auto",
 width: "95%"}}
 >
 

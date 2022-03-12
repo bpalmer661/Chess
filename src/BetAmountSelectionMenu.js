@@ -6,22 +6,19 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 
-import { useDispatch } from "react-redux";
-
-
 
 
 
 const options = [
-  0,
-  1,
-  2,
-  3,
+  //bpxx to allow for 2 token games we need to set up the win and lose amounts in abort game , whtie clock timer , black clock timer , check mate etc
+  
+  //2,
+  5,
 ];
 
 
 
-export default function DollarSelectionMenu() {
+export default function BetAmountSelectionMenu(props) {
 
   
 
@@ -29,8 +26,7 @@ export default function DollarSelectionMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedIndex, setSelectedIndex] = React.useState(1);
 
-  
-  const dispatch = useDispatch();
+
   
 
   const handleClickListItem = (event) => {
@@ -39,14 +35,18 @@ export default function DollarSelectionMenu() {
 
 useEffect(() => {
 
-localStorage.setItem("DollarPreference",options[selectedIndex])
+  props.onSelectBetAmount(options[selectedIndex]);            
 
 
-}, [selectedIndex,dispatch])
+}, [selectedIndex])
 
 
 
-
+useEffect(() => {
+  setSelectedIndex([0]);
+  }, [])
+  
+  
 
 
 
@@ -77,19 +77,18 @@ className="button is-primary"
         borderRadius: "4px",
         boxShadow: "rgba(32, 33, 36, 0.28) 0px 1px 6px 0px",
         hoverBackgroundColor: "#eee",
-        //color: "#212121",
-        color: "white",
         fontSize: "1vw",
         fontFamily: "Arial",
         iconColor: "grey",
         lineColor: "rgb(232, 234, 237)",
         placeholderColor: "grey",
         padding:"0px",
-        marginLeft:"5px",
         left:"0",
         textAlign:"center",
-        
-       
+         color:"black",
+         marginLeft: "5px",
+backgroundColor:"lightBlue",
+                  
 
 
         
@@ -103,7 +102,7 @@ className="button is-primary"
           onClick={handleClickListItem}
         >
           <ListItemText 
-          primary={`$ ${options[selectedIndex]}`} 
+          primary={` ${options[selectedIndex]} Tokens`} 
           />
         </ListItem>
       </List>
@@ -133,7 +132,7 @@ style={{
           
 
 
-            $ {`${option}`} 
+             {`${option}`} 
           
           </MenuItem>
         ))}

@@ -3,13 +3,14 @@
 
 import React, { useEffect, useState } from 'react'
 
-import {db, auth } from './firebase'
-import UsersPendingWithdrawalsCard from './UsersPendingWithdrawalsCard';
-import { useHistory } from 'react-router-dom'
+import {db } from '../firebase'
+import { Link, useLocation } from 'react-router-dom'
+import UsersPendingWithdrawalsCard from '../UsersPendingWithdrawalsCard';
 
 
 
-export default function UsersPendingWithdrawalsPage() {
+
+export default function AdminViewUsersWithdrawalHistory(props) {
 
 
 
@@ -19,14 +20,28 @@ const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
 
 
 
+
+const location = useLocation();
+
+
+
+
+    
+    
+    // check everything is working correctly with pendingWithdrawalsAndAllWithdrawalHistory
+
+
 useEffect(() => {
 
-//in database and when wrting change pendingWithdrawals to pendingWithdrawalsAndAllWithdrawalHistory
+    if(!props.location.usersEmail){
+        window.location.href = "/adminPayPendingWithdrawalsPage "
+      }
+
 
     const fetchTransactions = async () => {
       try {
       
-        const ref = db.collection("users").doc(auth.currentUser.email).collection("pendingWithdrawalsAndAllWithdrawalHistory").where("status", "==", "pending")
+        const ref = db.collection("users").doc(props.location.usersEmail).collection("pendingWithdrawalsAndAllWithdrawalHistory").orderBy("timestamp", 'desc');
 
 
         const docs = await ref.get();
@@ -42,17 +57,12 @@ useEffect(() => {
     };
 
     fetchTransactions();
-}, []);
+}, [props.location.usersEmail]);
 
 
 
-const history = useHistory()
 
 
-
-const goToUsersWithdrawalHistory = () => {
-  history.push('/usersWithdrawalHistory')
-}
 
 
 
@@ -94,14 +104,24 @@ timeProcessedTimeStamp={withdrawals.timeProcessedTimeStamp ?? "Pending"}
 
 <center>
 <h1
-style={{fontSize: "20px",color:"black"}}
+style={{fontSize: "30px",color:"black"}}
 > 
-Pending Withdrawals
-</h1>
+ 
 
+Admin View User's Withdrawal History - {location.usersEmail}
+</h1>
+<Link 
+ style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}
+to={{ 
+    pathname: '/adminViewUsersTransactionHistory', 
+    usersEmail: location.usersEmail,
+  }}
+  >
+  Admin - View Users Transaction History
+</Link>
 <br/>
 
-<button onClick={goToUsersWithdrawalHistory}> View Withdrawal History</button>
+
 </center>
 
 

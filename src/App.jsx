@@ -23,21 +23,30 @@ import Login from './login'
 import  Signup  from './signup';
 import DepositFunds from './DepositFunds';
 import WithdrawFunds from './WithdrawFunds';
-import UserPendingWithdrawalsPage from './UsersPendingWithdrawalsPage';
 import AdminPayPendingWithdrawalsPage from "./AdminPayPendingWithdrawalsPage"
+import UsersWithdrawalHistory from "./UsersWithdrawalHistory"
+import AdminViewUsersTransactionHistory from "./admin/AdminViewUsersTransactionHistory"
+import AdminViewUsersWithdrawalHistory from "./admin/AdminViewUsersWithdrawalHistory"
 
 
+import AdminPaidWithDrawalsPage from "./admin/AdminPaidWithDrawalsPage"
+
+
+
+
+
+
+     
 //we don't put brackets on navbar like {navbar } because it doesn't connect it to the right component/ if we put { navbar } the navbar component is not connected to
 //the redux store, so it does not have access to redux store data.
 import  Navbar from './Navbar';
 import Transactions from './Transactions';
-
+import ForgotPassword from './forgotPassword'
 
 const theme = createTheme(themeFile);
 
 
 export default function App() {
-
 
 
 
@@ -69,15 +78,21 @@ export default function App() {
     
        <Route exact path="/withdraw" component={WithdrawFunds}/>
     
-       <Route exact path="/userPendingWithdrawalsPage" component={UserPendingWithdrawalsPage}/>
-    
        <Route exact path="/adminPayPendingWithdrawalsPage" component={AdminPayPendingWithdrawalsPage}/>
     
-
-
-
+       <Route exact path="/usersWithdrawalHistory" component={UsersWithdrawalHistory}/>
+    
+       <Route exact path="/adminViewUsersTransactionHistory" component={AdminViewUsersTransactionHistory}/>
        
-       
+       <Route exact path="/adminViewUsersWithdrawalHistory" component={AdminViewUsersWithdrawalHistory}/>
+    
+
+       <Route exact path="/AdminPaidWithDrawalsPage" component={AdminPaidWithDrawalsPage}/>
+    
+       <Route exact path="/forgotPassword" component={ForgotPassword}/>
+    
+      
+      
 
        <Route exact path="/transactions" component={Transactions}/>
     
@@ -89,9 +104,9 @@ export default function App() {
 
 </AuthRoute>
 
-<AuthRoute exact path="/signup" >
+<Route exact path="/signup" >
          <Signup/>
-</AuthRoute>
+</Route>
 
                 <Route path="/MinuteSelectionMenu">
                     <MinuteSelectionMenu />

@@ -5,8 +5,6 @@ import { db,auth } from './firebase'
 import firebase from "firebase/app";
 import { useSelector } from 'react-redux'
 
-import dayjs from 'dayjs'
-
 
 
 
@@ -52,20 +50,20 @@ const deleteGameAndUsersCurrentGameFromDatabase = () => {
 
 if (currentUsersColor === "b") {
   usersNewRating = userRating + 4
-var usersNewTokenCount = usersTokens + 4
+var usersNewTokenCount = usersTokens + 4.5
 
-const timestamp = String(dayjs()) 
+const timestamp =  Date.now()
 
 var theOponnent
 
 if(opponent){
 theOponnent = opponent
 } else {
-theOponnent = "na"
+theOponnent = "NA"
 }
 
 
-db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4}`,
+db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4.5}`,
 balance:usersNewTokenCount, creditOrDebit: "credit", opponentsUsername: theOponnent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Win",
  winOrLoss: "Win" ,ResultBy: "Opponents Time Ended",  ratingChange:`+${4}`,rating: usersNewRating  });
 
@@ -79,7 +77,7 @@ balance:usersNewTokenCount, creditOrDebit: "credit", opponentsUsername: theOponn
   result = "wins"
 } else {
 
-const timestamp = String(dayjs()) 
+const timestamp =  Date.now()
 
 
 

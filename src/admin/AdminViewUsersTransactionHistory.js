@@ -1,12 +1,16 @@
+
+
+
 import React, { useEffect, useState } from 'react'
-import TransactionsCard from './TransactionsCard';
+import TransactionsCard from '../TransactionsCard';
 
-import {db, auth } from './firebase'
+import {db } from '../firebase'
+
+import { Link, useLocation } from 'react-router-dom';
 
 
-import { useHistory } from 'react-router-dom'
+export default function AdminViewUsersTransactionHistory(props) {
 
-export default function Transactions() {
 
 
 
@@ -15,26 +19,18 @@ const [transactions, setTransactions] = useState([]);
 
 
 
-const history = useHistory()
-
-
-
-const goToWithdrawalHistory = () => {
-history.push('/usersWithdrawalHistory')
-}
-
-
 
 
 useEffect(() => {
 
-
-console.log(" this is  Date.now() " +  Date.now())
+  if(!props.location.usersEmail){
+    window.location.href = "/adminPayPendingWithdrawalsPage "
+  }
 
     const fetchTransactions = async () => {
       try {
       
-        const ref = db.collection("users").doc(auth.currentUser.email).collection("transactions").orderBy("timestamp", 'desc');
+        const ref = db.collection("users").doc(props.location.usersEmail).collection("transactions").orderBy("timestamp", 'desc');
 
         const docs = await ref.get();
 
@@ -49,7 +45,7 @@ console.log(" this is  Date.now() " +  Date.now())
     };
 
     fetchTransactions();
-}, []);
+}, [props.location.usersEmail]);
 
 
 
@@ -89,38 +85,44 @@ opponentsUID={transaction.opponentsUID ?? "NA"}
   ) 
 
 
+  const location = useLocation();
+
+  console.log("props.location" + JSON.stringify(props.location))
+
+
+  console.log("props.location.usersEmail" + props.location.usersEmail)
+
+ console.log("props" + JSON.stringify(props))
 
   return (
   <div
-  style={{padding:"30px",marginTop:"150px", 
-  //backgroundColor:"purple"
-  }}
+  style={{padding:"30px",marginTop:"200px", backgroundColor:"purple"}}
   >
 
 <center>
 <h1
-style={{fontSize: "50px",color:"black"
-
-}}
+style={{fontSize: "30px",color:"black"}}
 > 
- Transaction History
+
+
+  
+
+
+Admin View User's Transaction History - {location.usersEmail}
 </h1>
 
 <br/>
 
-<button 
-style={{
-// backgroundColor:"#008CBA",
-backgroundColor:"lightBlue",
-margin: "auto",
-fontSize: "20px",
-borderRadius: "5px",
-padding:"10px",
-color:"black",
-marginBottom:"10px"
-}}
-onClick={goToWithdrawalHistory}>
-View Withdrawal History </button>
+<Link 
+ style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}
+to={{ 
+    pathname: '/adminViewUsersWithdrawalHistory', 
+    usersEmail: location.usersEmail,
+  }}
+  >
+  Admin - View Users Withdrawal History
+</Link>
+
 
 </center>
 
@@ -132,16 +134,12 @@ View Withdrawal History </button>
 
 
 <div
-style={{
-  //backgroundColor:"yellow", 
-margin:"auto 0"}}
+style={{backgroundColor:"yellow", margin:"auto 0"}}
 >  
 
 
 <div
-style={{
-  //backgroundColor:"blue",
-margin: "auto",
+style={{backgroundColor:"blue",margin: "auto",
 width: "95%"}}
 >
 

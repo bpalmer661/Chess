@@ -18,6 +18,9 @@ import {
      SET_PLAYERS_TOKENS,
      SET_PLAYERS_USERNAME,
      SET_PENDING_WITHDRAWAL,
+     SET_PLAYER,
+     SET_KNOWN_WALLET_ADDRESS,
+     SET_HAS_DEPOSITED,
     } from '../types'
 
 
@@ -25,6 +28,40 @@ import {
 import axios from 'axios'
 import 'firebase/firestore';
 
+
+
+
+export const setHasDeposited = (hasDeposited) => (dispatch) => {
+
+    console.log("setHasDeposited" + setHasDeposited)
+    dispatch({
+        type: SET_HAS_DEPOSITED,
+        payload: hasDeposited
+    })
+    }
+
+
+
+export const setPlayer = (player) => (dispatch) => {
+
+    console.log("setPlayer called this is player: " + player)
+    dispatch({
+        type: SET_PLAYER,
+        payload: player
+    })
+    }
+
+
+    
+    export const setknownWalletAddress = (knownWalletAddress) => (dispatch) => {
+
+        console.log("setknownWalletAddress called this is knownWalletAddress: " + knownWalletAddress)
+        dispatch({
+            type: SET_KNOWN_WALLET_ADDRESS,
+            payload: knownWalletAddress
+        })
+        }
+    
 
 
 export const setPlayerRating = (rating) => (dispatch) => {
@@ -49,6 +86,7 @@ export const setPlayerRating = (rating) => (dispatch) => {
         }
     
 
+        
 
 
     export const setPlayersUsername = (username) => (dispatch) => {

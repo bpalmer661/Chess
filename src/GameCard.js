@@ -8,8 +8,7 @@ import CardMedia from '@material-ui/core/CardMedia';
 import  Typography  from '@material-ui/core/Typography';
 import withStyles from '@material-ui/core/styles/withStyles'
 import { Link } from 'react-router-dom';
-import dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
+
 
 import { Tooltip} from '@material-ui/core';
 
@@ -78,7 +77,6 @@ const styles = {
     render() {
 
 
-      dayjs.extend(relativeTime)
     
         const { classes, 
 
@@ -179,10 +177,10 @@ style={{height:"6vh", width:"6vh",
               </Typography>
 
 
-              {/* npm i dayjs */}
               <Typography variant="body2" color="textSecondary">
              
-              {dayjs(this.props.createdAt).fromNow()} 
+              {(this.props.createdAt).toString()}
+              
               {/* {`- Posted By ${this.props.jobPostOwnersUsername}`} */}
               </Typography>
 

@@ -27,6 +27,9 @@
 
 //TO DO LIST
 
+//do paid withdrawals page
+
+
 
 // double check that opponents username is loaded into transactions correctly when each person runs out of time , so let white run out , then let black run out
 
@@ -56,8 +59,9 @@
 
 
 
-import React, { useEffect, useState } from 'react'
 
+
+import React, { useEffect, useState } from 'react'
 import './App.css'
 import { gameSubject, initGame, abortGame,offerRematch, getTurn} from './Game'
 import Board from './Board'
@@ -69,7 +73,15 @@ import { useDispatch,useSelector } from "react-redux";
 import { setClockValuesAndTimeStamp,setPlayersColor } from './redux/actions/userActions'
 import firebase from "firebase/app"
 import CircularProgress from '@material-ui/core/CircularProgress'
-import dayjs from 'dayjs'
+
+
+import elephant from './Images/elephantChess.png'
+
+
+
+import { useHistory } from 'react-router-dom'
+
+
 
 function GameApp() {
 
@@ -99,7 +111,7 @@ const [timestampForLastmove,setTimestampForLastmove] = useState()
   var [WhiteHasMoved, setWhiteHasMoved] = useState(null)
   var [BlackHasMoved, setBlackHasMoved] = useState(null)
   var [gameResigned, setGameResignedBoolean] = useState(false)
-var [gameWinner,SetGameWinner] = useState("")
+
 var [aborter,SetGameAborter] = useState("")
   var [gameAborted, setGameAbortedBoolean] = useState(false)
 
@@ -110,6 +122,9 @@ var [aborter,SetGameAborter] = useState("")
   var [playerOne, setPlayerOne] = useState()
   var [playerTwo, setPlayerTwo] = useState()
 
+
+  var [gameWinner, SetGameWinner] = useState()
+  
 
 
 //this is originally set by dispatch setPlayersColor in board.jsx
@@ -132,12 +147,12 @@ var opponent
 
 if (username !== playerOne) {
   console.log("opponent is: " + playerOne)
-   opponent = playerOne ?? "na"
+   opponent = playerOne ?? "NA"
  } 
  
  if (username !== playerTwo){
    console.log("opponent is: " + playerTwo)
-  opponent = playerTwo ?? "na"
+  opponent = playerTwo ?? "NA"
  }
  
 
@@ -253,7 +268,35 @@ const gameReadyMarkup = gameStatusReady === false ? (
   
   
   }}>
-  <CircularProgress/>
+<center>
+
+<img 
+style={{width:"150px", 
+padding:"5px",
+marginTop:"30px",
+}}
+src={elephant} alt="hammer" 
+/>
+  <p
+  style={{padding:"50px", fontSize:"20px",color:"white",}}
+  >  Waiting For An Opponent - To avoid long wait times please arrange to play against a friend 
+  ensuring that you have selected the same game length and bet amount.
+ </p>
+ <br/>
+ 
+ <CircularProgress/>
+
+ <p
+  style={{padding:"50px", fontSize:"20px",color:"white",}}
+  >  PUT YOUR ADD HERE - PERHAPS FOR A VPN
+ </p>
+
+</center>
+
+
+
+
+  
   </div>
 ) : (
   null
@@ -263,26 +306,48 @@ const gameReadyMarkup = gameStatusReady === false ? (
 
 
 
+const history = useHistory()
 
 
 const gameResignedFunction = () => {
 
-  
+  console.log(" gameResignedFunction called")
   db.collection('users').doc(auth.currentUser.email).update({
     ["currentGame"]: firebase.firestore.FieldValue.delete()
     }).catch((error) => {
       alert("error "+ error)
     });
 
+     db.collection("games").doc(id).get() 
+    .then(doc => {
+    
+ let gameStatus = doc.data().status 
 
-    //here we just let the winner delete the game from the database , not both players
-    if (currentUsersColor === game.winnerByOtherPlayerResigning){
+if (gameStatus === "waiting"){
+  db.collection("games").doc(id).delete()
+  history.push('/')
+  return
+}
 
- setTimeout(deleteGame, 1000); //execute greet after 2000 milliseconds (2 seconds)
+     var OnePlayerHasClickedThrough = doc.data().OnePlayerHasClickedThrough
+    
+if (!OnePlayerHasClickedThrough){
+  db.collection("games").doc(id).update({OnePlayerHasClickedThrough: true})
+  history.push('/')
+} else {
 
-    }
+  db.collection("games").doc(id).delete()
+  history.push('/')
+}
 
-    window.location.href = "/"
+    })
+
+
+   
+
+    setGameResignedBoolean(false)
+   
+    
     
 }
 
@@ -320,7 +385,7 @@ style={{textAlign:"center",
  color:"black",
  }}
 >
-{aborter} has aborted - {gameWinner} Wins , but won't get any points as {aborter} has not moved yet
+{aborter} Has Aborted - No points or token deductions as {aborter} has not moved yet.
 </p>
 
 <div
@@ -383,52 +448,6 @@ const blocker = gameResigned | gameAborted | isGameOver === true ? (
 
 
 
-const dummyAlert = (
-  <div
-   style={{
-    backgroundColor:"white", height:"240px",width:"450px", fontSize:"20px", position: "absolute",
-    zIndex:2, borderRadius: "15px",
-  backgroundColor:"purple"
-  }}>
-<p  
-style={{textAlign:"center",
-  verticalAlign: "middle", 
-  marginTop: "20px",
-  marginLeft: "10px",
-  marginRight: "10px",
-  color:"black",
-  }}
->
- DUMMY ALERT 
-</p>
-
-<div
-style={{
-  
-  width: "200px",
-  height: "40px",
-  margin: "auto",
-  marginTop: "30px",
- 
-}}
->
-
-<button 
-
-style={{width:"100%",
-height:"40px",
-color: "white",
-backgroundColor:"#008CBA",
-margin: "auto",
-fontSize: "20px",
-borderRadius: "5px",
-}}
-
-onClick={gameResignedFunction}> OK </button>
-
-  </div>
-  </div>
-) 
 
 
 
@@ -459,14 +478,16 @@ const gameAbortedFinishingFunction = () => {
   
     var newRating = currentUsersRating + 4
 
-    usersNewTokenCount = usersTokens + 4
+    usersNewTokenCount = usersTokens + 4.5
 
-    const timestamp = String(dayjs()) 
+    const timestamp =  Date.now()
 
 
 
-db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4}`,
-balance:usersNewTokenCount, creditOrDebit: "credit",opponentsUsername: opponent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Win",
+db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4.5}`,
+balance:usersNewTokenCount, creditOrDebit: "credit",opponentsUsername: opponent, 
+opponentEmail: "NA",opponentsUID: "NA", 
+timestamp, type: "Win",
  winOrLoss: "Win", ResultBy: "Opponent Aborted Game", ratingChange:`+${4}`,rating: newRating });
 
   
@@ -491,7 +512,7 @@ balance:usersNewTokenCount, creditOrDebit: "credit",opponentsUsername: opponent,
   var newRatingTwo = currentUsersRating - 4
 
   var usersNewTokenCount = usersTokens - 5
-  const timestamp = String(dayjs()) 
+  const timestamp =  Date.now()
 
 db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`-${5}`,
 balance:usersNewTokenCount, creditOrDebit: "debit", opponentsUsername: opponent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Loss", 
@@ -512,14 +533,25 @@ winOrLoss: "Loss", ResultBy: "You Aborted Game",ratingChange:`-${4}`,rating: new
   
   }
 
-    //here we just let the winner delete the game from the database , not both players
-    if (currentUsersColor === game.winnerByOtherPlayerAborting){
 
-      setTimeout(deleteGame, 1000); //execute greet after 2000 milliseconds (2 seconds)
-     
-         }
-         
-         window.location.href = "/"
+  //this code makes sure the seccond person to click through is the one who deletes the game
+  //this avoids san error from a user trying subscribing to a deleted game
+
+if (!game.OnePlayerHasClickedThrough){
+  alert("was no game.OnePlayerHasClickedThrough ")
+  db.collection("games").doc(id).update({OnePlayerHasClickedThrough: true})
+  history.push('/')
+} else {
+  alert("there was a game.OnePlayerHasClickedThrough ")
+  db.collection("games").doc(id).delete()
+  history.push('/')
+}
+
+
+ 
+
+
+
 }
 
 
@@ -543,33 +575,41 @@ var [losersColor, setLosersColor] = useState()
 
 
 
+const handleDraw = () => {
 
+  var newRating = currentUsersRating - 1 
+
+  var theUsersNewTokenCount = usersTokens - 1
+  const timestamp =  Date.now()
+
+  db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`-${1}`,
+  balance:theUsersNewTokenCount, creditOrDebit: "debit",opponentsUsername: opponent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Draw",
+   winOrLoss: "Draw", ResultBy: result, ratingChange:`+${1}`,rating: newRating  });
+  
+    
+           db.collection('users').doc(auth.currentUser.email).update({
+             rating: newRating,
+             tokens: theUsersNewTokenCount,
+             ["currentGame"]: firebase.firestore.FieldValue.delete()
+           
+             }).then(() =>{
+              window.location.href = "/"
+             }).catch((error) => {
+               alert("error "+ error)
+               
+             });
+}
 
 
 
 
 const gameIsOverFinishingFunction = (winner) => {
 
-
-//   return `CHECKMATE - WINNER - ${winner}`
-// } else if (chess.in_draw()) {
-//     let reason = '50 - MOVES - RULE'
-//     if (chess.in_stalemate()) {
-//         reason = 'STALEMATE'
-//     } else if (chess.in_threefold_repetition()) {
-//         reason = 'REPETITION'
-//     } else if (chess.insufficient_material()) {
-//         reason = "INSUFFICIENT MATERIAL"
-//     }
-//     return `DRAW - ${reason}`
-// } else {
-//     return 'UNKNOWN REASON'
-
+ 
 
 if (result !== `CHECKMATE`){
-
-  // should mean it was a draw
-  window.location.href = "/"
+  handleDraw()
+  return
 }
 
 
@@ -591,18 +631,19 @@ if (result !== `CHECKMATE`){
    
     var newRating = currentUsersRating + 4
 
-    usersNewTokenCount = usersTokens + 4
+    var NewTokenCount; 
+    NewTokenCount = usersTokens + 4.5
 
-    const timestamp = String(dayjs()) 
+    const timestamp =  Date.now()
 
-db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4}`,
-balance:usersNewTokenCount, creditOrDebit: "credit",opponentsUsername: opponent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Win",
+db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4.5}`,
+balance:NewTokenCount, creditOrDebit: "credit",opponentsUsername: opponent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Win",
  winOrLoss: "Win", ResultBy: `${result}`, ratingChange:`+${4}`,rating: newRating  });
 
   
          db.collection('users').doc(auth.currentUser.email).update({
            rating: newRating,
-           tokens: usersNewTokenCount,
+           tokens: NewTokenCount,
            ["currentGame"]: firebase.firestore.FieldValue.delete()
          
            }).catch((error) => {
@@ -613,9 +654,9 @@ balance:usersNewTokenCount, creditOrDebit: "credit",opponentsUsername: opponent,
   } else {
 
   var newRatingTwo = currentUsersRating - 4
-
+ 
   var usersNewTokenCount = usersTokens - 5
-  const timestamp = String(dayjs()) 
+  const timestamp =  Date.now()
 
 db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`-${5}`,
 balance:usersNewTokenCount, creditOrDebit: "debit", opponentsUsername: opponent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Loss", 
@@ -644,9 +685,9 @@ winOrLoss: "Loss", ResultBy: `${result}`, ratingChange:`-${4}`,rating: newRating
 
 
 
+// when does draw insufficient material occur when there is no way to win ?
 
-
-
+// or it is when your opponent only has a king left and your time runs out? 
 
 
 
@@ -656,7 +697,6 @@ const gameIsOverMarkup = isGameOver === true ? (
   style={{
    backgroundColor:"white", height:"200px",width:"450px", fontSize:"20px", position: "absolute",
    zIndex:3, borderRadius: "15px",
- 
  }}>
 <p  
 style={{textAlign:"center",
@@ -813,14 +853,25 @@ const userRating = useSelector(state => state.user.rating) ?? 500
 
 
 function deleteGame() {
-  // alert("delete GAme called ")
+
+
   db.collection("games").doc(id).delete().then(() => {
     console.log("Document successfully deleted!");
-
+    goToHomePage()
   }).catch((error) => {
     alert("error "+ error)
   });
+  goToHomePage()
  }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -848,28 +899,27 @@ function deleteGame() {
 const res = await initGame(db.doc(`games/${id}`), id,userRating,username)
 
 
-
       setInitResult(res)
-
-
-
 
 
       setLoading(false)
       if (!res) {
 
-        
         subscribe = gameSubject.subscribe((game) => {
-
-
 
 
 
 dispatch(setPlayersColor(game.piece));
 
-
 //winnerByOtherPlayerResigning means a person aborts with out moving
 if(game.winnerByOtherPlayerResigning){
+
+
+
+
+  new Audio("/gameOver.mov").play()
+
+
   setWhiteClockOn(false)
   setBlackClockOn(false)
 var winner;
@@ -884,6 +934,7 @@ if (game.winnerByOtherPlayerResigning === "w"){
   SetGameWinner(winner)
   SetGameAborter(aborter)
   setGameResignedBoolean(true)
+
 
 }
 
@@ -910,6 +961,9 @@ if (game.result){
 
        
       if(game.winnerByOtherPlayerAborting){
+
+  new Audio("/gameOver.mov").play()
+
   setWhiteClockOn(false)
   setBlackClockOn(false)
   setWinnersColor(game.winnerByOtherPlayerAborting)
@@ -939,12 +993,7 @@ dispatch(setClockValuesAndTimeStamp(game));
          setBlackClockOn(game.blackClockOn)
         setWhiteHasMoved(game.WhiteHasMoved)
        setBlackHasMoved(game.BlackHasMoved)
-
-
-       console.log("this is game.isGameOver " + game.isGameOver + ` white clock on  ${game.whiteClockOn}`  + `black clock on ${game.blackClockOn}`)
-
        if(game.isGameOver){
-         console.log("this is game.isGameOver " + game.isGameOver)
          setWhiteClockOn(false)
          setBlackClockOn(false)
          return
@@ -968,6 +1017,7 @@ dispatch(setClockValuesAndTimeStamp(game));
         
 
 if (game.status  === "ready"){
+
 
   setGameStatusReady(true)
   SetGamesInitialStartTimeIfNoneAndSetOpponentsRating()
@@ -1083,17 +1133,7 @@ if (game.status  === "ready"){
 
   return (
     <div className="app-container">
-      {/* {isGameOver && (
-        <h2 className="vertical-text">
-          GAME OVER
-          <button onClick={async () => {
-            await resetGame()
-            history.push('/')
-          }}>
-            <span className="vertical-text"> NEW GAME</span>
-          </button>
-        </h2>
-      )} */}
+   
 
       {blocker}
 {PlayerResignsAlert}

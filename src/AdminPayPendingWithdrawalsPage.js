@@ -3,24 +3,28 @@
 
 import React, { useEffect, useState } from 'react'
 
-import {db, auth } from './firebase'
+import {db } from './firebase'
 //import UsersPendingWithdrawalsCard from './UsersPendingWithdrawalsCard';
 
 import { ethers } from "ethers";
 
+import { Link } from 'react-router-dom';
+
+import { useHistory } from 'react-router-dom'
+
+
  
-import dayjs from 'dayjs'
+
 export default function AdminPayPendingWithdrawalsPage() {
 
 
 
-// bpx when we deposit tokens it is not updating redux straight away, we need to update redux and also have the nav bar 
-// show the exact amount of tokens at all times , ie straight after Games, straight after deposits etc etc 
+
+const history = useHistory()
+
 
 
 const [pendingWithdrawals, setPendingWithdrawals] = useState([]);
-
-
 
 //dummy functions used just to call useeffect from AdminPendingWithdrawalsCard child///////////////
 const [fetchTransactionsBoolean, setFetchTransactionsBoolean] = useState();
@@ -60,6 +64,9 @@ console.log("use effect called")
 
 
 
+const goToAdminPaidWithDrawalsPage = () => {
+  history.push('/AdminPaidWithDrawalsPage')
+}
 
 
 
@@ -103,15 +110,26 @@ status={withdrawals.status ?? "Error 3zxg3g"}
 <h1
 style={{fontSize: "20px",color:"black"}}
 > 
-Admin Pending Payments
+Admin Pay Pending Withdrawals Page
 </h1>
 </center>
 
 
 <br/>
+<br/>
+
+  
+<center>
+
+<br/>
+
+<button onClick={goToAdminPaidWithDrawalsPage}> View All Paid Withdrawal History</button>
+</center>
 
 
 
+<br/>
+<br/>
 
 
 <div
@@ -130,7 +148,7 @@ width: "95%"}}
 style={{display:"flex", 
 }}>
 
-<p style={{ borderStyle:"solid", width:"80px", height:"40px",padding:"5px",backgroundColor:"lightblue",fontWeight: 'bold',fontSize: "10px" }} > UsersEmail</p>
+<p style={{ borderStyle:"solid", width:"150px", height:"40px",padding:"5px",backgroundColor:"lightblue",fontWeight: 'bold',fontSize: "10px" }} > UsersEmail</p>
 <p style={{ borderStyle:"solid", width:"80px", height:"40px",padding:"5px",backgroundColor:"lightblue",fontWeight: 'bold',fontSize: "10px" }} > Withdrawal Amount</p>
 <p style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"lightblue",fontWeight: 'bold',fontSize: "10px"  }}  > Date  & Time Requested</p>
 <p style={{ borderStyle:"solid", width:"300px", height:"40px",padding:"5px",backgroundColor:"lightblue",fontWeight: 'bold',fontSize: "10px"  }}  > Wallet Address</p>
@@ -138,7 +156,9 @@ style={{display:"flex",
 
 <p style={{ borderStyle:"solid", width:"300px", height:"40px",padding:"5px",backgroundColor:"lightblue",fontWeight: 'bold',fontSize: "10px"  }}  > txn hash / Transaction Id</p>
 
+<button style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}> View Users Transactions </button>
 <button style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}> Pay </button>
+
 
 
 </div>
@@ -169,8 +189,6 @@ style={{display:"flex",
 
 
 
-
-
  function AdminPendingWithdrawalsCard(props) {
 
 
@@ -178,14 +196,22 @@ style={{display:"flex",
 const [Error, setError] = useState([]);
 
 
+
+
+
+// need to continue here to push to adminViewUsersTransactionHistory page with the users email then call databasee to get their transaction history 
+
+
+
+const history = useHistory()
+
     const makePayment = async () => {
-
-
 
 console.log(` users email ${props.usersEmail}`)
 console.log(` users withdrawalAmount ${props.withdrawalAmount}`)
 console.log(` users usersWalletAddress ${props.usersWalletAddress}`)
 console.log(` document ID  ${props.id}`)
+
 
 var playersTokens;
 
@@ -201,12 +227,12 @@ var withdrawalAmountPlusFee = Number(props.withdrawalAmount) + 50
 
 
 
-const timestamp = String(dayjs()) 
+const timestamp =  Date.now()
 
 if(playersTokens < withdrawalAmountPlusFee){
-  alert("insufficient Funds")
+  alert(`insufficient funds users needs ${withdrawalAmountPlusFee} but only has ${playersTokens}`)
 //update users pending withdrawals as insufficient funds
-db.collection("users").doc(props.usersEmail).collection("pendingWithdrawals").doc(props.id).update({
+db.collection("users").doc(props.usersEmail).collection("pendingWithdrawalsAndAllWithdrawalHistory").doc(props.id).update({
   status: "denied insufficient Funds", txnHash: "denied insufficient Funds",timeProcessedTimeStamp: timestamp
 })
 
@@ -255,39 +281,63 @@ try {
   
  
 
-// here we add the transaction to the database,
-const fromAddress = tx.from
-
-console.log("this is tx.from " + tx.from)
-
 
 //just did this check below so when we make the payment it actually does log into the databas correctly
 
-db.collection("users").doc(props.usersEmail).collection("pendingWithdrawals").doc(props.id).update({
+if (!props.usersEmail){
+  alert("error no props.email")
+}
+
+db.collection("users").doc(props.usersEmail).collection("pendingWithdrawalsAndAllWithdrawalHistory").doc(props.id).update({
   status: "Paid", txnHash: tx.hash,timeProcessedTimeStamp: timestamp
-})
+}).catch((error) => {
+  alert("error "+ error)
+});
+
+
 
 
 var newTokenCount = playersTokens - withdrawalAmountPlusFee
 
 console.log(`newTokenCount of ${newTokenCount} - should be ${playersTokens} minus ${withdrawalAmountPlusFee}`)
 
-db.collection("users").doc(props.usersEmail).update({pendingWithdrawal: false, tokens:newTokenCount})
+db.collection("users").doc(props.usersEmail).update({pendingWithdrawal: false, tokens:newTokenCount}).catch((error) => {
+  alert("error "+ error)
+});
+
 
 
 //need to update players transactiuons to say withdrawal proccessed difference in tokens 
 db.collection("users").doc(props.usersEmail).collection("transactions").add({amount:`-${withdrawalAmountPlusFee}`,
 balance:newTokenCount, creditOrDebit: "debit",opponentsUsername: "NA", opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "WithDrawal + Fee",
- winOrLoss: "NA", ResultBy: "NA", ratingChange:`NA`,rating: "NA" });
+ winOrLoss: "NA", ResultBy: "NA", ratingChange:`NA`,rating: "NA", txnHash: tx.hash }).catch((error) => {
+  alert("error "+ error)
+});;
 
 
 
+db.collection("paidWithdrawals").add({amountPlusFee:`-${withdrawalAmountPlusFee}`, amountPaid: props.withdrawalAmount,
+usersNewBalance:newTokenCount, timestamp, usersWalletAddress: props.usersWalletAddress,
+ txnHash: tx.hash, EmailOfUserWithdrawalWasPaidTo: props.usersEmail}).catch((error) => {
+  alert("error "+ error)
+});;
 
+
+ db.collection("pendingWithdrawals").doc(props.id).delete().catch((error) => {
+  alert("error "+ error)
+});
+
+ props.setFetchTransactionsFunc()
+
+
+ history.push('/AdminPaidWithDrawalsPage')
 
 
 } catch (err) {
     console.log("error: " + err.message)
   setError(err.message);
+
+props.setFetchTransactionsFunc()
 }
 
 
@@ -295,7 +345,13 @@ balance:newTokenCount, creditOrDebit: "debit",opponentsUsername: "NA", opponentE
 
     }
     
-    
+
+let date = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(props.timestamp)
+
+
+
+
+
       return (
     
     
@@ -307,12 +363,29 @@ balance:newTokenCount, creditOrDebit: "debit",opponentsUsername: "NA", opponentE
     
     
     
-    <p style={{ borderStyle:"solid", width:"80px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px" }} > {props.usersEmail}</p>
+    <p style={{ borderStyle:"solid", width:"150px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px" }} > {props.usersEmail}</p>
      <p style={{ borderStyle:"solid", width:"80px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px" }} > {props.withdrawalAmount}</p>
-     <p style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}  > {props.timestamp}</p>
+     <p style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}  > {date}  </p>
      <p style={{ borderStyle:"solid", width:"300px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}  > {props.usersWalletAddress}</p>
      <p style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}  > {props.status}</p>
     <p style={{ borderStyle:"solid", width:"300px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}  > {props.txnHash}</p>
+    
+
+
+ <Link 
+ style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}
+to={{ 
+    pathname: '/adminViewUsersTransactionHistory', 
+    usersEmail: props.usersEmail,
+  }}
+  >
+  View Users Transaction History
+</Link>
+
+
+
+    
+
     <button onClick={makePayment} style={{ borderStyle:"solid", width:"200px", height:"40px",padding:"5px",backgroundColor:"white",fontWeight: 'bold',fontSize: "8px"  }}> Pay </button>
     
     </div>

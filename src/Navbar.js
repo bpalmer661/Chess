@@ -14,7 +14,6 @@ import { setUnAutheticated,setPlayerRating,setPlayersTokens,setPlayersUsername,s
 
 import { useHistory } from 'react-router-dom'
 
-
 ///npm install @material-ui/core
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -23,8 +22,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import firebase from 'firebase'
 
 
-
-
+import elephant from './Images/elephantChess.png'
 
 
 
@@ -35,6 +33,15 @@ export default function Navbar() {
 const dispatch = useDispatch();
 
 const history = useHistory()
+
+
+const usersTokens = useSelector(state => state.user.tokens) 
+
+// const fields = useSelector((state) => state.WHATEVER_REDUCER);
+
+// useEffect(() => {
+//     setSaveBtn(true); // show save btn if there is changes in state
+// }, [fields]);
 
     const signout = () => {
         firebase.auth().signOut().then(() => {
@@ -52,14 +59,17 @@ dispatch(setUnAutheticated())
 
 
 
-    const goToHomePage = () => {
-        window.location.href = '/'
-    }
-
-
 
 const [rating, setRating] = useState()
 const [tokens, setTokens] = useState()
+
+
+
+
+useEffect(() => {
+    console.log("useEffect called for userTokens")
+    setTokens(usersTokens)
+}, [usersTokens])
 
 
 const adminMakePaymentMarkup = auth.currentUser && auth.currentUser.email === "benpalmer661@icloud.com" ? (
@@ -69,7 +79,10 @@ tip="Logout"
 onClick={goToAdminPayPendingWithdrawalsPage}
 >
  <p
- style={{color:"white"}}
+  style={{
+      fontSize:"20px",
+     color:"black",
+ }}
  >Admin Make Payments</p>
 </MyButton>
 ) : (
@@ -82,29 +95,30 @@ useEffect(() => {
 
     const { currentUser } = auth
 
+    // if(!currentUser){
+    //     window.location.href = "/login"
+    // } 
+
     if (currentUser) {
 
 
     db.collection("users").doc(auth.currentUser.email).get().then((doc) => {
 
-
         if (doc.exists) {
 
-
             const rating = doc.data().rating
-
-            const tokens = doc.data().tokens
+            const tokens = String(doc.data().tokens)
             const username = doc.data().username
             const pendingWithdrawal = doc.data().pendingWithdrawal
 
 
+            console.log("this is tokens: " + tokens)
            if (username) {
                dispatch(setPlayersUsername(username))
            }
 if(pendingWithdrawal) {
     dispatch(setPendingWithdrawal(pendingWithdrawal));
 }
-
 
             if (tokens) {
     dispatch(setPlayersTokens(tokens));
@@ -128,14 +142,12 @@ if(pendingWithdrawal) {
 
 
 const depositFunds = () => {
-    console.log("deposit funds pressed")
     history.push('/deposit')
 
 }
 
 
 const withdrawFunds = () => {
-    console.log("withdrawFunds pressed")
     history.push('/withdraw')
 
 }
@@ -145,7 +157,6 @@ const withdrawFunds = () => {
 
 
 const goToTransactionsPage = () => {
-    console.log("goToTransactionsPage pressed")
     history.push('/transactions')
 
     // window.location.href = '/deposit';
@@ -162,34 +173,57 @@ const authenticated = useSelector(state => state.user.authenticated)
 
     
         return (
-            <AppBar>
+            <AppBar
+            style={{backgroundColor:"lightblue"}}
+            >
             <Toolbar 
-            style={{margin:"auto"}}
+            style={{margin:"auto",backgroundColor:"lightblue"}}
             className="nav-container">
 {authenticated ? ( 
 
 <Fragment>
 
+<img 
+    style={{height:"100px", padding: "20px", left:"0px"}}
+    src={elephant} alt="hammer" 
+    //className={}
+    />
+
 
 <p
- style={{color:"white", left:100}}
- >  {`${auth.currentUser.email} - Rating ${rating} - Tokens ${tokens} `}  </p>
+ style={{
+    display: "inline-block",
+    color:"black",
+  left:200,
+  width:"200px"}}
+ >  {`${auth.currentUser.email} \n
+ Rating ${rating} \n
+ - Tokens ${tokens} 
+ `} 
 
-<br/>
- <br/>
+  </p>
 
- <br/>
- <br/>
- <br/>
+ 
+
+
 
 <MyButton
 tip="home"
-onClick={goToHomePage}
+onClick={
+    () => { window.location.href = '/'
+    }}
 >
  <p
- style={{color:"white"}}
+ style={{
+     color:"black",
+     fontSize:"20px",
+ }}
  >Home</p>
 </MyButton>
+
+
+
+
 
 {adminMakePaymentMarkup}
 
@@ -198,7 +232,10 @@ tip="Transactions Page"
 onClick={goToTransactionsPage}
 >
  <p
- style={{color:"white"}}
+  style={{
+    fontSize:"20px",
+     color:"black",
+ }}
  >Transactions</p>
 </MyButton>
 
@@ -208,19 +245,26 @@ tip="Deposit Funds"
 onClick={depositFunds}
 >
  <p
- style={{color:"white"}}
- > Deposit Funds</p>
+ style={{
+    fontSize:"20px",
+     color:"black",
+ 
+ }}
+ > Deposit</p>
  
 </MyButton>
 
 
 <MyButton
-tip="Deposit Funds"
+tip="Withdraw"
 onClick={withdrawFunds}
 >
  <p
- style={{color:"white"}}
- > Withdraw Funds</p>
+ style={{
+    fontSize:"20px",
+     color:"black",
+ }}
+ > Withdraw </p>
  
 </MyButton>
 
@@ -237,7 +281,10 @@ tip="Logout"
 onClick={signout}
 >
    <p
- style={{color:"white"}}
+  style={{
+    fontSize:"20px",
+     color:"black",
+ }}
  > Log Out</p>
 </MyButton>
 
@@ -269,9 +316,6 @@ onClick={signout}
     }
     
     
-
-
-
 
 
 

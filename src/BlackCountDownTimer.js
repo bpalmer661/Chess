@@ -11,7 +11,6 @@ import React, { useState, useEffect} from 'react'
 import { db,auth, } from './firebase'
 import firebase from "firebase/app";
 import { useSelector } from 'react-redux'
-import dayjs from 'dayjs'
 
 function BlackCountDownTimer(props) {
 
@@ -26,6 +25,7 @@ const [timerOn, setTimerOn] = useState(props.blackClockOn);
 
 const currentUsersColor = useSelector(state => state.user.position) 
 const userRating = useSelector(state => state.user.rating) 
+
 
 const usersTokens = useSelector(state => state.user.tokens) 
 
@@ -53,9 +53,9 @@ const deleteGameAndUsersCurrentGameFromDatabase = () => {
   if (currentUsersColor === "w") {
     usersNewRating = userRating + 4
 
-    var usersNewTokenCount = usersTokens + 4
+    var usersNewTokenCount = usersTokens + 4.5
 
-    const timestamp = String(dayjs()) 
+    const timestamp =  Date.now()
 
 
     var theOponnent
@@ -63,13 +63,14 @@ const deleteGameAndUsersCurrentGameFromDatabase = () => {
     if(opponent){
     theOponnent = opponent
     } else {
-    theOponnent = "na"
+    theOponnent = "NA"
     }
     
     
 
-db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4}`,
-balance:usersNewTokenCount, creditOrDebit: "credit", opponentsUsername: theOponnent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Win",
+db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${4.5}`,
+balance:usersNewTokenCount, creditOrDebit: "credit", opponentsUsername: theOponnent, 
+opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Win",
  winOrLoss: "Win",ResultBy: "Opponents Time Ended",ratingChange:`+${4}`,rating: usersNewRating  });
 
 
@@ -81,7 +82,7 @@ balance:usersNewTokenCount, creditOrDebit: "credit", opponentsUsername: theOponn
 
   } else {
 
-    const timestamp = String(dayjs()) 
+    const timestamp =  Date.now()
 
     usersNewRating = userRating - 4 
   var theUsersNewTokenCount = usersTokens - 5
@@ -91,12 +92,14 @@ balance:usersNewTokenCount, creditOrDebit: "credit", opponentsUsername: theOponn
   if(opponent){
     thePlayersOponnent = opponent
   } else {
-    thePlayersOponnent = "na"
+    thePlayersOponnent = "NA"
   }
 
   
   db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`-${5}`,
-  balance:theUsersNewTokenCount, creditOrDebit: "debit",opponentsUsername: thePlayersOponnent, opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "Loss", 
+  balance:theUsersNewTokenCount, creditOrDebit: "debit",
+  opponentsUsername: thePlayersOponnent, opponentEmail: "NA",
+  opponentsUID: "NA", timestamp, type: "Loss", 
   winOrLoss: "Loss" ,ResultBy: "Your Time Ended", ratingChange:`-${4}`,rating: usersNewRating});
   
   

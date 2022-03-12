@@ -9,24 +9,41 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 import { useDispatch } from "react-redux";
-import token from './Images/token.png'
 import { ethers } from "ethers";
 import { db,auth } from './firebase';
-import dayjs from 'dayjs';
 
-import { setPlayersTokens } from './redux/actions/userActions';
+
+import elephant from './Images/elephantChess.png'
+
+
+import metamaskImage from './Images/metamaskImage.png'
+
+
+import { useHistory } from 'react-router-dom'
+
+
+
+import { setHasDeposited, setPlayersTokens } from './redux/actions/userActions';
 
 const tokens = [
     50,
     100,
     200,
     300,
+    500,
+    1000,
+    2000,
+    5000,
   ];
   
   
   
 
 export default function DepositFunds() {
+
+
+const history = useHistory()
+
 
 // const classes = useStyles();
 const [anchorEl, setAnchorEl] = useState(null);
@@ -35,7 +52,231 @@ const [amountInEth, setAmountInEth] = useState();
 const [Error, setError] = useState();
 // eslint-disable-next-line
 const [ tx, setTxs] = useState();
+const [depositSuccessfulMarkupBollean, setDepositSuccessfulMarkupBollean] = useState(false)
 
+const [noMetaMaskBoolean, setNoMetaMaskBoolean] = useState(false)
+
+
+const goToTransactionsPage = () => {
+
+history.push('/transactions')
+}
+
+
+
+ 
+
+
+
+
+var noMetaMaskMarkup = noMetaMaskBoolean === true ? (
+
+  <center>
+      <div
+        style={{
+         backgroundColor:"white", 
+         fontSize:"20px", 
+         zIndex:3,
+        backgroundcolor: "red",
+        
+        padding:"20px",
+       width:"500px",
+        position: "fixed",
+        top: "30%",
+        left: "35%",
+        borderRadius:"10px",
+        borderColor:"grey",
+        border: "solid"
+       }}>
+
+      
+<center>
+
+
+<img 
+style={{width:"100px", 
+padding:"20px"
+
+}}
+src={elephant} alt="hammer" 
+/>
+
+ </center>
+      
+
+
+ 
+      <p  
+      style={{textAlign:"center",
+       verticalAlign: "middle", 
+       marginTop: "10px",
+       marginLeft: "10px",
+       marginRight: "10px",
+       color:"black",
+       fontSize:"20px"
+       }}
+      >
+     Metamask Needed In Order To Make A Deposit
+      
+      
+      </p>
+      
+      <center>
+
+<img 
+style={{width:"300px", 
+padding:"0px"
+
+}}
+src={metamaskImage} alt="hammer" 
+/>
+
+ </center>
+
+
+ 
+  {/* eslint-disable-next-line */}
+ <a target="_blank" href='http://metamask.io/download/'>
+ <button
+ onClick={() => setNoMetaMaskBoolean(false)}
+ style={{width:"100%",
+      height:"40px",
+      color: "white",
+      backgroundColor:"#008CBA",
+      margin: "auto",
+      fontSize: "20px",
+      borderRadius: "5px",
+      }}
+>     
+ Install Metamask
+ </button>
+ 
+ </a>
+
+      
+ <button
+ onClick={() => setNoMetaMaskBoolean(false)}
+ style={{width:"100%",
+      height:"40px",
+      color: "white",
+      backgroundColor:"#008CBA",
+      margin: "auto",
+      fontSize: "20px",
+      borderRadius: "5px",
+      marginTop:"10px"
+      }}
+>     
+ Ok
+ </button>
+ 
+      <div className=""
+      
+      >
+               
+                </div>
+    
+       </div>
+       </center>
+      ) : (
+        null
+      )
+
+
+
+
+
+
+
+var depositSuccessfulMarkup = depositSuccessfulMarkupBollean === true ? (
+
+  <center>
+      <div
+        style={{
+         backgroundColor:"white", 
+         fontSize:"20px", 
+         zIndex:3,
+        backgroundcolor: "red",
+        
+        padding:"20px",
+       width:"500px",
+        position: "fixed",
+        top: "50%",
+        left: "35%",
+        borderRadius:"10px",
+        borderColor:"grey",
+        border: "solid"
+       }}>
+
+      
+<center>
+
+<img 
+style={{width:"150px", 
+padding:"20px"
+
+}}
+src={elephant} alt="hammer" 
+/>
+
+ </center>
+      
+      <p  
+      style={{textAlign:"center",
+       verticalAlign: "middle", 
+       marginTop: "20px",
+       marginLeft: "10px",
+       marginRight: "10px",
+       color:"black",
+       fontSize:"20px"
+       }}
+      >
+     Deposit Successful 
+      
+      
+      </p>
+      
+      
+      
+      <div className=""
+      
+      >
+               
+                </div>
+      
+      <div
+      style={{
+       
+       width: "200px",
+       height: "40px",
+       margin: "auto",
+       marginTop: "30px",
+      
+      }}
+      >
+  
+      <button 
+      style={{width:"100%",
+      height:"40px",
+      color: "white",
+      backgroundColor:"#008CBA",
+      margin: "auto",
+      fontSize: "20px",
+      borderRadius: "5px",
+      }}
+      onClick={goToTransactionsPage}
+     
+      
+      >  Ok</button>
+      
+       </div>
+       </div>
+       </center>
+      ) : (
+        null
+      )
+
+      
+     
 
 var playersTokens;
 
@@ -47,13 +288,34 @@ const makePurchase = async () => {
 
 
     try {
-      if (!window.ethereum)
+      
+      if (!window.ethereum){
         throw new Error("No crypto wallet found. Please install it.");
-  
+         // eslint-disable-next-line
+  setNoMetaMaskBoolean(true)
+
+      }
+
+
       await window.ethereum.request({ method: 'eth_requestAccounts' });
 
     
       const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+
+      const { chainId } = await provider.getNetwork()
+      console.log("this is chainId" + chainId) // 42
+
+      //bpxxxx ensure this is uncommented before build
+      if (chainId !== 1){
+        alert("please change to Metamask to the Mainnet to make payment" )
+        return
+      }
+
+
+
+
+     console.log("provider : " + provider  )
 
       const signer = provider.getSigner();
 
@@ -62,6 +324,10 @@ var addr = "0x5E43C15D965a7a132401b9c1DCFd21a14037497D"
 
 //below line of code validates the address and throws an error if the address is incorrect 
       ethers.utils.getAddress(addr);
+
+     const network =  ethers.providers.getNetwork
+
+     console.log("this is network : " + network  )
 
       //benpalmer eth address - 0x5E43C15D965a7a132401b9c1DCFd21a14037497D
       // same address again to be sure 0x5E43C15D965a7a132401b9c1DCFd21a14037497D
@@ -76,6 +342,7 @@ var addr = "0x5E43C15D965a7a132401b9c1DCFd21a14037497D"
       
       console.log("tx: ", tx);
       setTxs([tx]);
+
 
 // here we add the transaction to the database,
 
@@ -101,11 +368,22 @@ db.collection("users").doc(auth.currentUser.email).update({tokens:newTotal})
 
 dispatch(setPlayersTokens(newTotal));
 
-const timestamp = String(dayjs()) 
+const timestamp =  Date.now()
 
 db.collection("users").doc(auth.currentUser.email).collection("transactions").add({amount:`+${tokensPurchased}`,
 balance:newTotal, creditOrDebit: "credit", opponentEmail: "NA",opponentsUID: "NA", timestamp, type: "deposit", winOrLoss: "NA" ,
-hash: tx.hash, fromAddress, });
+hash: tx.hash, fromAddress, txnHash: tx.hash});
+
+db.collection("users").doc(auth.currentUser.email).update({hasDeposited:true, })
+
+
+dispatch(setHasDeposited(true));
+
+
+setDepositSuccessfulMarkupBollean(true)
+
+
+new Audio("/elephantSoundEffect.mp3").play()
 
 })
 .catch(err => 
@@ -118,24 +396,6 @@ hash: tx.hash, fromAddress, });
       setError(err.message);
     }
   };
-
-
-
-
-
-
-
-
-//   tx:  {hash: '0xe4cbadc487d3368803c49f2923a1f991d95755bf90934eca7921d1e100f335ef', 
-//   type: 2, accessList: null, blockHash: null, blockNumber: null, …}accessList: nullblockHash: nullblockNumber: nullchainId: 
-//   0confirmations: 0creates: nulldata: "0x"
-//   from: "0x5E43C15D965a7a132401b9c1DCFd21a14037497D"gasLimit: BigNumber
-//    {_hex: '0x5208', _isBigNumber: true}
-//   gasPrice: BigNumber {_hex: '0x908a904f', _isBigNumber: true}hash: "0xe4cbadc487d3368803c49f2923a1f991d95755bf90934eca7921d1e100f335ef"
-//   maxFeePerGas: BigNumber {_hex: '0x908a904f', _isBigNumber: true}maxPriorityFeePerGas: BigNumber {_hex: '0x908a9040', _isBigNumber: true}nonce: 1r: "0x12d48c0d86607fb9205cd60775b6f7ce978b6fec9929f64f86e8c09f1255f312"s: "0x5b953a184628ccfff7a4c95a9e8b177a551c4eb43dfee54ae476a27bdff16dac"to: "0x5E43C15D965a7a132401b9c1DCFd21a14037497D"transactionIndex: nulltype: 2v: 0value: BigNumber {_hex: '0x2386f26fc10000', _isBigNumber: true}wait: (confirms, timeout) => {…}[[Prototype]]: Object
-
-
-
 
 
 
@@ -203,38 +463,48 @@ const [roundUSD, setRoundUSD] = useState();
 
 
   <div
-  style={{ paddingTop:"200px",padding:"50px",
-  backgroundColor:"blue",
+  style={{ paddingTop:"300px",padding:"50px",
+  // backgroundColor:"blue",
    position:"relative"}}
   >
 
 <div
   style={{ paddingTop:"50px", 
-  backgroundColor:"coral",
+  // backgroundColor:"coral",
    position:"relative",
    }}
   >
 
-
+{depositSuccessfulMarkup}
+{noMetaMaskMarkup}
 
 <p
 style={{fontSize:"60px",
-  backgroundColor:"green",
+  // backgroundColor:"green",
    textAlign:"center",color:"black",
+   padding:"20px"
    
    }}
    
-> PURCHASE TOKENS
+> Purchase Tokens
 
 </p>
 
 <center>
-<img
-style={{width:"200px", backgroundColor:"blue",
+
+<img 
+style={{width:"150px", 
+padding:"30px"
 
 }}
- src={token} alt="token" />
+src={elephant} alt="hammer" 
+/>
+
  </center>
+
+
+
+
 
 
 
@@ -244,7 +514,9 @@ style={{width:"200px", backgroundColor:"blue",
 
 
     <p
-    style={{backgroundColor:"red", textAlign:"center", color:"black"}}
+    style={{
+      //backgroundColor:"red",
+     textAlign:"center", color:"black"}}
     
     >
 
@@ -254,10 +526,10 @@ style={{width:"200px", backgroundColor:"blue",
 
 <br/>
 <br/>
-
+{/* 
 100 Tokens = 0.0100 Etheruem 
 <br/>
-0.0100 Eth = ${ (roundUSD * 100).toFixed(2) }USD
+0.0100 Eth = ${ (roundUSD * 100).toFixed(2) }USD */}
 
 </p>
 }
@@ -295,7 +567,9 @@ style={{padding:"20px"}}
           aria-controls="lock-menu"
           aria-label="when device is locked"
           onClick={handleClickListItem}
-          style={{width:"200px",height:"44px",backgroundColor:"yellow"}}
+          style={{width:"200px",height:"44px",
+          //backgroundColor:"yellow"
+          }}
           
         >
           <ListItemText 
@@ -313,15 +587,19 @@ style={{padding:"20px"}}
         keepMounted
         open={Boolean(anchorEl)}
         onClose={handleClose}
-        style={{width:"20vw",backgroundColor:"blue"}}
+        style={{width:"50vw",
+        //backgroundColor:"blue"
+        }}
       >
         {tokens.map((token, index) => (
             <center>
           <MenuItem
-          style={{width:"300px", backgroundColor:"red"}}
+          style={{width:"450px", 
+          // backgroundColor:"red",
+          padding:"20px"
+          }}
 
             key={token}
-            
             selected={index === selectedIndex}
             onClick={(event) => handleMenuItemClick(event, index)}
           >
@@ -346,11 +624,14 @@ style={{padding:"20px"}}
          
           <div className="">
             
-            <div className="my-3">
+            <div 
+            >
             <h1
-            style={{backgroundColor:"white",
-            width:"300px"
-            
+            style={{backgroundColor:"lightblue",
+            width:"300px",
+            borderRadius:"10px",
+            borderColor: "black",
+            padding:"10px"
             }}
             >
                { tokens[selectedIndex] } Tokens = Etheruem {amountInEth} =  ${((roundUSD * tokens[selectedIndex]).toFixed(2))}USD 
@@ -363,7 +644,11 @@ style={{padding:"20px"}}
             onClick={makePurchase}
             type="submit"
             className="btn btn-primary submit-button focus:ring focus:outline-none w-full"
-            style={{width:"150px",height:"40px",fontSize:"15px"}}
+            style={{width:"150px",height:"40px",fontSize:"15px",
+            backgroundColor:"lightblue",
+            color:"black",
+            borderRadius: "5px",
+            }}
             
           >
             Purchase
@@ -379,7 +664,9 @@ style={{padding:"20px"}}
 
 {Error &&
 <div
-style={{backgroundColor:"red",padding:"20px"}}
+style={{
+  //backgroundColor:"red",
+padding:"20px"}}
 >
 ERROR: {Error}
 </div>
